@@ -365,6 +365,10 @@
   let recentScans = {};
   let html5Qr = null;
   let reportRows = [];
+  let scanBusy = false; // true while a scan is being confirmed — camera is
+  // paused and further decodes/manual submits are ignored until it clears.
+  // This is what stops a badge held too long in front of the camera from
+  // getting scanned twice (once in, once right back out).
 
   // ---------- tabs ----------
   function showView(name){
@@ -520,30 +524,55 @@
     el.innerHTML = '<span class="state">'+state+'</span><span class="name">'+escapeHtml(name)+'</span><span class="meta">'+escapeHtml(meta||'')+'</span>';
   }
 
+  function readyBanner(){
+    setBanner('', 'Ready', "Scan a student's QR code", 'Point the camera at the code on their badge');
+  }
+
   async function handleCode(rawCode){
     let code = rawCode;
     if(code.startsWith(QR_PREFIX)) code = code.slice(QR_PREFIX.length);
     code = code.trim();
     if(!code) return;
+    // A scan is already being confirmed (camera is paused) — ignore this
+    // one rather than let a badge held in view fire a second toggle.
+    if(scanBusy) return;
+    scanBusy = true;
+    pauseCameraForScan();
+    setBanner('', 'Reading…', code, 'Confirming — one moment');
 
     const nowTs = Date.now();
-    if(recentScans[code] && (nowTs - recentScans[code]) < 6000) return; // debounce
+    const tooSoon = recentScans[code] && (nowTs - recentScans[code]) < 8000; // covers manual re-entry and the badge still being in view right as the camera resumes
     recentScans[code] = nowTs;
 
     try{
-      const result = await apiPost('scan', {code});
-      if(result.error === 'not_found'){ setBanner('err','Not recognized', code, 'Check the badge or use manual entry'); return; }
-      if(result.error === 'inactive'){ setBanner('err','Inactive student', result.name||code, 'This student is marked inactive'); return; }
-      setBanner(result.type, result.type==='in'?'Checked in':'Checked out', result.name, fmt12(result.time)+' · '+result.code);
-      refreshPresent();
+      if(tooSoon){
+        setBanner('err','Already logged', code, 'Give it a few seconds before scanning this badge again');
+      } else {
+        const result = await apiPost('scan', {code});
+        if(result.error === 'not_found'){ setBanner('err','Not recognized', code, 'Check the badge or use manual entry'); }
+        else if(result.error === 'inactive'){ setBanner('err','Inactive student', result.name||code, 'This student is marked inactive'); }
+        else{
+          setBanner(result.type, result.type==='in'?'Checked in':'Checked out', result.name, fmt12(result.time)+' · '+result.code);
+          refreshPresent();
+        }
+      }
     }catch(e){
       setBanner('err','Could not save', code, 'Check your connection and try again');
     }
+
+    // Hold the result on screen and keep the camera paused for a beat so
+    // the same badge can't be re-read the instant scanning resumes.
+    setTimeout(()=>{
+      scanBusy = false;
+      resumeCameraAfterScan();
+      readyBanner();
+    }, 1500);
   }
 
   $('#btn-manual-log').addEventListener('click', ()=>{
     const v = $('#manual-input').value.trim();
     if(!v) return;
+    if(scanBusy){ toast('Give the last scan a second to finish.'); return; }
     handleCode(v);
     $('#manual-input').value='';
   });
@@ -582,9 +611,21 @@
       html5Qr.stop().then(()=>html5Qr.clear()).catch(()=>{});
       html5Qr = null;
     }
+    scanBusy = false;
     $('#scanner-idle').style.display='flex';
     $('#qr-reader').style.display='none';
     $('#scanner-controls').style.display='none';
+  }
+  // Freezes the live video + decoding while a scan result is being shown,
+  // so a badge that's still sitting in front of the camera can't be read
+  // again a fraction of a second later. Falls back gracefully (the
+  // scanBusy flag alone still blocks re-processing) if pause isn't
+  // supported for some reason.
+  function pauseCameraForScan(){
+    if(html5Qr){ try{ html5Qr.pause(true); }catch(e){} }
+  }
+  function resumeCameraAfterScan(){
+    if(html5Qr){ try{ html5Qr.resume(); }catch(e){} }
   }
   $('#btn-start-camera').addEventListener('click', startCamera);
   $('#btn-stop-camera').addEventListener('click', stopCamera);
