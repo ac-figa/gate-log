@@ -121,6 +121,10 @@
   .flex-between{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
   .setup-card{ border-color:var(--out); }
   .setup-card code{ background:var(--surface-2); padding:1px 6px; border-radius:4px; }
+
+  .modal-overlay{ display:none; position:fixed; inset:0; background:rgba(20,26,33,0.55); align-items:center; justify-content:center; padding:20px; z-index:100; }
+  .modal-card{ width:100%; max-width:340px; }
+  .modal-card h2{ font-size:1.1rem; margin-bottom:4px; }
 </style>
 </head>
 <body>
@@ -147,6 +151,22 @@
   <div id="conn-error" class="card setup-card" style="display:none;">
     <strong style="color:var(--out);">Can't reach the spreadsheet right now.</strong>
     <p class="hint" style="margin:8px 0 0;" id="conn-error-detail">Check your internet connection, or confirm the Apps Script deployment is still live.</p>
+  </div>
+
+  <div id="password-modal" class="modal-overlay">
+    <div class="card modal-card">
+      <h2>Staff access</h2>
+      <div class="sub">Enter the staff password to view this section.</div>
+      <div class="field">
+        <label for="password-input">Password</label>
+        <input type="password" id="password-input" placeholder="Password" autocomplete="off" />
+      </div>
+      <div class="hint" id="password-error" style="display:none; color:var(--out); margin:-6px 0 12px;">Incorrect password — try again.</div>
+      <div class="row" style="justify-content:flex-end;">
+        <button class="btn ghost" id="password-cancel">Cancel</button>
+        <button class="btn" id="password-submit">Unlock</button>
+      </div>
+    </div>
   </div>
 
   <!-- SCAN VIEW -->
@@ -287,9 +307,15 @@
 (function(){
   "use strict";
 
-  // ====== CONFIGURE THESE TWO LINES (see the setup guide) ======
+  // ====== CONFIGURE THESE LINES (see the setup guide) ======
   const API_URL = "https://script.google.com/macros/s/AKfycbyboBKFiPkCsMOJZUKo9LATwXh_WGMViDDhqf-vX9g2-vVeQVgKcX3kbQ36dMlqH33A/exec";
   const API_KEY = "daniel123";
+  // Staff password that gates the Roster and Reports tabs — anyone can use
+  // the Scan tab without it, but has to enter this to see student names or
+  // the report. Change it to whatever you like; it's checked in the
+  // browser, so it's a light "keep casual visitors out" lock, not a real
+  // login — someone who reads this file's source could still find it.
+  const ADMIN_PASSWORD = "daniel123";
   // ===============================================================
 
   const $ = (sel) => document.querySelector(sel);
@@ -362,13 +388,58 @@
 
   // ---------- state ----------
   let roster = new Map();
-  let recentScans = {};
   let html5Qr = null;
   let reportRows = [];
+  let lastReportEvents = [];
+  let presentList = [];
   let scanBusy = false; // true while a scan is being confirmed — camera is
   // paused and further decodes/manual submits are ignored until it clears.
   // This is what stops a badge held too long in front of the camera from
   // getting scanned twice (once in, once right back out).
+
+  // ---------- staff password (gates Roster + Reports only) ----------
+  const PROTECTED_VIEWS = ['roster','reports'];
+  let adminUnlocked = false;
+  try{ adminUnlocked = sessionStorage.getItem('gatelog_admin_ok') === '1'; }catch(e){}
+  let pendingView = null;
+
+  function openPasswordModal(viewName){
+    pendingView = viewName;
+    $('#password-input').value='';
+    $('#password-error').style.display='none';
+    $('#password-modal').style.display='flex';
+    setTimeout(()=>$('#password-input').focus(), 50);
+  }
+  function closePasswordModal(){
+    $('#password-modal').style.display='none';
+    pendingView = null;
+  }
+  function submitPassword(){
+    const val = $('#password-input').value;
+    if(val && val === ADMIN_PASSWORD){
+      adminUnlocked = true;
+      try{ sessionStorage.setItem('gatelog_admin_ok','1'); }catch(e){}
+      const target = pendingView;
+      closePasswordModal();
+      showView(target);
+      unlockedRefresh();
+    } else {
+      $('#password-error').style.display='block';
+      $('#password-input').value='';
+      $('#password-input').focus();
+    }
+  }
+  $('#password-cancel').addEventListener('click', closePasswordModal);
+  $('#password-submit').addEventListener('click', submitPassword);
+  $('#password-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') submitPassword(); });
+  $('#password-modal').addEventListener('click', (e)=>{ if(e.target.id==='password-modal') closePasswordModal(); });
+
+  // Re-render whatever protected content is now visible once unlocked.
+  function unlockedRefresh(){
+    renderRoster();
+    renderPresentList();
+    renderReport(lastReportEvents);
+  }
 
   // ---------- tabs ----------
   function showView(name){
@@ -377,9 +448,13 @@
     $$('.tab').forEach(t=>t.setAttribute('aria-selected', String(t.dataset.view===name)));
     if(name!=='scan'){ stopCamera(); }
   }
-  $('#tab-scan').addEventListener('click', ()=>showView('scan'));
-  $('#tab-roster').addEventListener('click', ()=>showView('roster'));
-  $('#tab-reports').addEventListener('click', ()=>showView('reports'));
+  function guardedShowView(name){
+    if(PROTECTED_VIEWS.includes(name) && !adminUnlocked){ openPasswordModal(name); return; }
+    showView(name);
+  }
+  $('#tab-scan').addEventListener('click', ()=>guardedShowView('scan'));
+  $('#tab-roster').addEventListener('click', ()=>guardedShowView('roster'));
+  $('#tab-reports').addEventListener('click', ()=>guardedShowView('reports'));
 
   // ---------- init ----------
   function init(){
@@ -417,6 +492,7 @@
 
   function renderRoster(){
     $('#roster-count').textContent = roster.size;
+    if(!adminUnlocked) return; // don't populate the visible names/table until unlocked
     const q = ($('#roster-search').value||'').trim().toLowerCase();
     const rows = Array.from(roster.values())
       .filter(s => !q || s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q) || (s.group||'').toLowerCase().includes(q))
@@ -540,33 +616,31 @@
     pauseCameraForScan();
     setBanner('', 'Reading…', code, 'Confirming — one moment');
 
-    const nowTs = Date.now();
-    const tooSoon = recentScans[code] && (nowTs - recentScans[code]) < 8000; // covers manual re-entry and the badge still being in view right as the camera resumes
-    recentScans[code] = nowTs;
-
     try{
-      if(tooSoon){
-        setBanner('err','Already logged', code, 'Give it a few seconds before scanning this badge again');
+      const result = await apiPost('scan', {code});
+      if(result.error === 'not_found'){ setBanner('err','Not recognized', code, 'Check the badge or use manual entry'); }
+      else if(result.error === 'inactive'){ setBanner('err','Inactive student', result.name||code, 'This student is marked inactive'); }
+      else if(result.duplicate){
+        // Server saw another entry for this person within the last 2
+        // minutes and skipped writing a new one — most likely the same
+        // scan registering twice by accident, not a real second visit.
+        setBanner(result.type, result.type==='in'?'Already checked in':'Already checked out', result.name, 'Scanned again right after '+fmt12(result.time)+' — skipped as a duplicate');
       } else {
-        const result = await apiPost('scan', {code});
-        if(result.error === 'not_found'){ setBanner('err','Not recognized', code, 'Check the badge or use manual entry'); }
-        else if(result.error === 'inactive'){ setBanner('err','Inactive student', result.name||code, 'This student is marked inactive'); }
-        else{
-          setBanner(result.type, result.type==='in'?'Checked in':'Checked out', result.name, fmt12(result.time)+' · '+result.code);
-          refreshPresent();
-        }
+        setBanner(result.type, result.type==='in'?'Checked in':'Checked out', result.name, fmt12(result.time)+' · '+result.code);
+        refreshPresent();
       }
     }catch(e){
       setBanner('err','Could not save', code, 'Check your connection and try again');
     }
 
-    // Hold the result on screen and keep the camera paused for a beat so
-    // the same badge can't be re-read the instant scanning resumes.
+    // Brief pause so the same badge can't be re-read the instant scanning
+    // resumes — kept short since the server now also catches a duplicate
+    // scan of the same person within a couple of minutes (see handleCode).
     setTimeout(()=>{
       scanBusy = false;
       resumeCameraAfterScan();
       readyBanner();
-    }, 1500);
+    }, 700);
   }
 
   $('#btn-manual-log').addEventListener('click', ()=>{
@@ -634,16 +708,22 @@
   async function refreshPresent(){
     try{
       const list = await apiGet('today');
-      $('#present-count').textContent = list.length;
-      const el = $('#present-list');
-      if(!list.length){ el.innerHTML = '<div class="empty">No one checked in yet today.</div>'; }
-      else{
-        el.innerHTML = '<table><thead><tr><th>Student</th><th>Code</th><th>Since</th></tr></thead><tbody>'+
-          list.sort((a,b)=>a.name.localeCompare(b.name)).map(p=>'<tr><td>'+escapeHtml(p.name)+'</td><td class="mono code-chip">'+p.code+'</td><td class="mono">'+fmt12(p.since)+'</td></tr>').join('')+
-          '</tbody></table>';
-      }
+      presentList = list;
+      $('#present-count').textContent = list.length; // just a number — fine to show without unlocking
+      renderPresentList();
       clearConnError();
     }catch(e){ /* keep last-known view rather than clearing it on a blip */ }
+  }
+  function renderPresentList(){
+    if(!adminUnlocked) return; // the named list itself lives on the (locked) Reports tab
+    const list = presentList;
+    const el = $('#present-list');
+    if(!list.length){ el.innerHTML = '<div class="empty">No one checked in yet today.</div>'; }
+    else{
+      el.innerHTML = '<table><thead><tr><th>Student</th><th>Code</th><th>Since</th></tr></thead><tbody>'+
+        list.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>'<tr><td>'+escapeHtml(p.name)+'</td><td class="mono code-chip">'+p.code+'</td><td class="mono">'+fmt12(p.since)+'</td></tr>').join('')+
+        '</tbody></table>';
+    }
   }
 
   // ---------- reports ----------
@@ -652,6 +732,7 @@
     if(!monthVal) return;
     try{
       const events = await apiGet('report', {month: monthVal});
+      lastReportEvents = events;
       renderReport(events);
       clearConnError();
     }catch(e){ showConnError('Could not load the report: '+e.message); }
@@ -659,7 +740,10 @@
 
   function renderReport(events){
     // events: one row per scan {date,time,code,name,type}. Pair sequential
-    // in/out events per student per day into sessions.
+    // in/out events per student per day into sessions. Rows are still
+    // computed (and kept in reportRows) even while locked, so CSV export
+    // is ready to go the moment the tab unlocks — only the visible table
+    // and stats wait on adminUnlocked.
     const byDay = {};
     events.forEach(ev=>{ (byDay[ev.date] = byDay[ev.date]||[]).push(ev); });
 
@@ -683,6 +767,7 @@
     });
     rows.sort((a,b)=> a.date===b.date ? a.name.localeCompare(b.name) : a.date.localeCompare(b.date));
     reportRows = rows;
+    if(!adminUnlocked) return; // don't populate the visible names/table until unlocked
 
     const daysWithData = new Set(rows.map(r=>r.date)).size;
     const openSessions = rows.filter(r=>!r.timeOut).length;
