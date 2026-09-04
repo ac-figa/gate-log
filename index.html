@@ -1,201 +1,201 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<title>Gate Log</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-
-<style>
-  :root{
-    --paper:#F5F6F3; --surface:#FFFFFF; --surface-2:#EDEFEA;
-    --ink:#1E2A38; --ink-soft:#5B6B7A; --line:#DADFDB;
-    --accent:#2B4570; --accent-ink:#FFFFFF;
-    --in:#2F6B4F; --in-soft:#E4F0E9;
-    --out:#B23A2E; --out-soft:#F6E5E2;
-    --shadow: 0 1px 2px rgba(30,42,56,0.06), 0 6px 20px rgba(30,42,56,0.06);
-    --radius: 10px;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --paper:#12181F; --surface:#1B232D; --surface-2:#212B36;
-      --ink:#E7EBEF; --ink-soft:#93A1AE; --line:#2B343E;
-      --accent:#7FA0DC; --accent-ink:#0F1620;
-      --in:#63C296; --in-soft:#173226;
-      --out:#E2897A; --out-soft:#3A211D;
-      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 24px rgba(0,0,0,0.35);
-      color-scheme: dark;
+  <head>
+    <meta charset="utf-8" />
+    <title>Gate Log</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  
+  <style>
+    :root{
+      --paper:#F5F6F3; --surface:#FFFFFF; --surface-2:#EDEFEA;
+      --ink:#1E2A38; --ink-soft:#5B6B7A; --line:#DADFDB;
+      --accent:#2B4570; --accent-ink:#FFFFFF;
+      --in:#2F6B4F; --in-soft:#E4F0E9;
+      --out:#B23A2E; --out-soft:#F6E5E2;
+      --shadow: 0 1px 2px rgba(30,42,56,0.06), 0 6px 20px rgba(30,42,56,0.06);
+      --radius: 10px;
+      color-scheme: light;
     }
-  }
-  *{ box-sizing:border-box; }
-  body{ margin:0; background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; font-size:15px; line-height:1.5; }
-  h1,h2,h3{ font-family:"IBM Plex Serif", Georgia, serif; text-wrap:balance; margin:0; }
-  .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
-  button, input, select, textarea{ font:inherit; color:inherit; }
-  button{ cursor:pointer; }
-  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-  ::selection{ background:var(--accent); color:var(--accent-ink); }
+    @media (prefers-color-scheme: dark){
+      :root:not([data-theme="light"]){
+        --paper:#12181F; --surface:#1B232D; --surface-2:#212B36;
+        --ink:#E7EBEF; --ink-soft:#93A1AE; --line:#2B343E;
+        --accent:#7FA0DC; --accent-ink:#0F1620;
+        --in:#63C296; --in-soft:#173226;
+        --out:#E2897A; --out-soft:#3A211D;
+        --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 24px rgba(0,0,0,0.35);
+        color-scheme: dark;
+      }
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; font-size:15px; line-height:1.5; }
+    h1,h2,h3{ font-family:"IBM Plex Serif", Georgia, serif; text-wrap:balance; margin:0; }
+    .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+    button, input, select, textarea{ font:inherit; color:inherit; }
+    button{ cursor:pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+    ::selection{ background:var(--accent); color:var(--accent-ink); }
 
-  .app{ max-width:920px; margin:0 auto; padding:20px 18px 60px; }
-  .topbar{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
-  .brand{ display:flex; align-items:baseline; gap:10px; }
-  .brand h1{ font-size:1.5rem; letter-spacing:-0.01em; }
-  .brand .tag{ color:var(--ink-soft); font-size:0.82rem; }
+    .app{ max-width:920px; margin:0 auto; padding:20px 18px 60px; }
+    .topbar{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+    .brand{ display:flex; align-items:baseline; gap:10px; }
+    .brand h1{ font-size:1.5rem; letter-spacing:-0.01em; }
+    .brand .tag{ color:var(--ink-soft); font-size:0.82rem; }
 
-  .tabs{ display:flex; gap:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:4px; }
-  .tab{ border:none; background:transparent; padding:8px 16px; border-radius:999px; font-weight:600; font-size:0.88rem; color:var(--ink-soft); }
-  .tab[aria-selected="true"]{ background:var(--accent); color:var(--accent-ink); }
+    .tabs{ display:flex; gap:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:4px; }
+    .tab{ border:none; background:transparent; padding:8px 16px; border-radius:999px; font-weight:600; font-size:0.88rem; color:var(--ink-soft); }
+    .tab[aria-selected="true"]{ background:var(--accent); color:var(--accent-ink); }
 
-  .view{ display:none; flex-direction:column; gap:18px; }
-  .view.active{ display:flex; }
+    .view{ display:none; flex-direction:column; gap:18px; }
+    .view.active{ display:flex; }
 
-  .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; }
-  .card h2{ font-size:1.05rem; margin-bottom:4px; }
-  .card .sub{ color:var(--ink-soft); font-size:0.85rem; margin-bottom:14px; }
-  .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  .grow{ flex:1 1 160px; }
+    .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; }
+    .card h2{ font-size:1.05rem; margin-bottom:4px; }
+    .card .sub{ color:var(--ink-soft); font-size:0.85rem; margin-bottom:14px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .grow{ flex:1 1 160px; }
 
-  label{ display:block; font-size:0.78rem; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; margin-bottom:5px; }
-  input[type="text"], input[type="month"], input[type="search"], input[type="password"], select, textarea{
-    width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:7px; background:var(--paper); color:var(--ink);
-  }
-  textarea{ resize:vertical; min-height:88px; }
+    label{ display:block; font-size:0.78rem; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; margin-bottom:5px; }
+    input[type="text"], input[type="month"], input[type="search"], input[type="password"], select, textarea{
+      width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:7px; background:var(--paper); color:var(--ink);
+    }
+    textarea{ resize:vertical; min-height:88px; }
 
-  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 16px; border-radius:7px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); font-weight:600; font-size:0.88rem; white-space:nowrap; }
-  .btn:disabled{ opacity:.5; cursor:not-allowed; }
-  .btn.secondary{ background:transparent; color:var(--accent); }
-  .btn.ghost{ background:transparent; color:var(--ink-soft); border-color:var(--line); }
-  .btn.small{ padding:5px 11px; font-size:0.78rem; }
+    .btn{ display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 16px; border-radius:7px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); font-weight:600; font-size:0.88rem; white-space:nowrap; }
+    .btn:disabled{ opacity:.5; cursor:not-allowed; }
+    .btn.secondary{ background:transparent; color:var(--accent); }
+    .btn.ghost{ background:transparent; color:var(--ink-soft); border-color:var(--line); }
+    .btn.small{ padding:5px 11px; font-size:0.78rem; }
 
-  .field{ margin-bottom:12px; }
+    .field{ margin-bottom:12px; }
 
-  .scan-wrap{ display:grid; grid-template-columns:1fr; gap:16px; }
-  .banner{ border-radius:var(--radius); padding:22px; text-align:center; border:1px solid var(--line); background:var(--surface); box-shadow:var(--shadow); min-height:108px; display:flex; flex-direction:column; justify-content:center; gap:4px; }
-  .banner .state{ font-size:0.78rem; text-transform:uppercase; letter-spacing:.08em; font-weight:700; color:var(--ink-soft); }
-  .banner .name{ font-family:"IBM Plex Serif"; font-size:1.7rem; font-weight:700; }
-  .banner .meta{ font-size:0.92rem; color:var(--ink-soft); }
-  .banner.in{ background:var(--in-soft); border-color:var(--in); }
-  .banner.in .state{ color:var(--in); }
-  .banner.out{ background:var(--out-soft); border-color:var(--out); }
-  .banner.out .state{ color:var(--out); }
-  .banner.err{ background:var(--out-soft); border-color:var(--out); }
-  .banner.err .state, .banner.err .name{ color:var(--out); }
+    .scan-wrap{ display:grid; grid-template-columns:1fr; gap:16px; }
+    .banner{ border-radius:var(--radius); padding:22px; text-align:center; border:1px solid var(--line); background:var(--surface); box-shadow:var(--shadow); min-height:108px; display:flex; flex-direction:column; justify-content:center; gap:4px; }
+    .banner .state{ font-size:0.78rem; text-transform:uppercase; letter-spacing:.08em; font-weight:700; color:var(--ink-soft); }
+    .banner .name{ font-family:"IBM Plex Serif"; font-size:1.7rem; font-weight:700; }
+    .banner .meta{ font-size:0.92rem; color:var(--ink-soft); }
+    .banner.in{ background:var(--in-soft); border-color:var(--in); }
+    .banner.in .state{ color:var(--in); }
+    .banner.out{ background:var(--out-soft); border-color:var(--out); }
+    .banner.out .state{ color:var(--out); }
+    .banner.err{ background:var(--out-soft); border-color:var(--out); }
+    .banner.err .state, .banner.err .name{ color:var(--out); }
 
-  #qr-reader{ width:100%; max-width:420px; margin:0 auto; border-radius:var(--radius); overflow:hidden; background:#000; min-height:280px; }
-  #qr-reader video{ border-radius:var(--radius); }
-  .scan-start{ display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; padding:34px 20px; color:var(--ink-soft); }
-  .scan-start svg{ width:52px; height:52px; color:var(--ink-soft); }
+    #qr-reader{ width:100%; max-width:420px; margin:0 auto; border-radius:var(--radius); overflow:hidden; background:#000; min-height:280px; }
+    #qr-reader video{ border-radius:var(--radius); }
+    .scan-start{ display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; padding:34px 20px; color:var(--ink-soft); }
+    .scan-start svg{ width:52px; height:52px; color:var(--ink-soft); }
 
-  .present-pill{ display:inline-flex; align-items:center; gap:7px; padding:5px 12px; border-radius:999px; background:var(--in-soft); color:var(--in); font-weight:600; font-size:0.82rem; }
-  .present-pill .dot{ width:7px; height:7px; border-radius:50%; background:var(--in); }
-  .manual{ border-top:1px dashed var(--line); margin-top:16px; padding-top:14px; }
+    .present-pill{ display:inline-flex; align-items:center; gap:7px; padding:5px 12px; border-radius:999px; background:var(--in-soft); color:var(--in); font-weight:600; font-size:0.82rem; }
+    .present-pill .dot{ width:7px; height:7px; border-radius:50%; background:var(--in); }
+    .manual{ border-top:1px dashed var(--line); margin-top:16px; padding-top:14px; }
 
-  table{ width:100%; border-collapse:collapse; font-size:0.88rem; }
-  th, td{ text-align:left; padding:9px 8px; border-bottom:1px solid var(--line); }
-  th{ color:var(--ink-soft); font-weight:600; font-size:0.76rem; text-transform:uppercase; letter-spacing:.04em; }
-  tr:last-child td{ border-bottom:none; }
-  .table-wrap{ overflow-x:auto; }
-  .badge{ display:inline-block; padding:2px 9px; border-radius:999px; font-size:0.74rem; font-weight:600; }
-  .badge.active{ background:var(--in-soft); color:var(--in); }
-  .badge.inactive{ background:var(--surface-2); color:var(--ink-soft); }
-  .code-chip{ background:var(--surface-2); border-radius:5px; padding:1px 7px; font-size:0.82rem; }
+    table{ width:100%; border-collapse:collapse; font-size:0.88rem; }
+    th, td{ text-align:left; padding:9px 8px; border-bottom:1px solid var(--line); }
+    th{ color:var(--ink-soft); font-weight:600; font-size:0.76rem; text-transform:uppercase; letter-spacing:.04em; }
+    tr:last-child td{ border-bottom:none; }
+    .table-wrap{ overflow-x:auto; }
+    .badge{ display:inline-block; padding:2px 9px; border-radius:999px; font-size:0.74rem; font-weight:600; }
+    .badge.active{ background:var(--in-soft); color:var(--in); }
+    .badge.inactive{ background:var(--surface-2); color:var(--ink-soft); }
+    .code-chip{ background:var(--surface-2); border-radius:5px; padding:1px 7px; font-size:0.82rem; }
 
-  .qr-preview{ display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); }
-  .qr-preview canvas{ border-radius:8px; border:1px solid var(--line); background:#fff; }
+    .qr-preview{ display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); }
+    .qr-preview canvas{ border-radius:8px; border:1px solid var(--line); background:#fff; }
 
-  .stat-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:12px; }
-  .stat{ background:var(--surface-2); border-radius:8px; padding:12px 14px; }
-  .stat .num{ font-family:"IBM Plex Mono"; font-size:1.5rem; font-weight:600; }
-  .stat .lbl{ color:var(--ink-soft); font-size:0.78rem; text-transform:uppercase; letter-spacing:.04em; }
+    .stat-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:12px; }
+    .stat{ background:var(--surface-2); border-radius:8px; padding:12px 14px; }
+    .stat .num{ font-family:"IBM Plex Mono"; font-size:1.5rem; font-weight:600; }
+    .stat .lbl{ color:var(--ink-soft); font-size:0.78rem; text-transform:uppercase; letter-spacing:.04em; }
 
-  .toast-wrap{ position:fixed; bottom:18px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; z-index:50; }
-  .toast{ background:var(--ink); color:var(--paper); padding:10px 16px; border-radius:8px; font-size:0.86rem; box-shadow:var(--shadow); }
+    .toast-wrap{ position:fixed; bottom:18px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; z-index:50; }
+    .toast{ background:var(--ink); color:var(--paper); padding:10px 16px; border-radius:8px; font-size:0.86rem; box-shadow:var(--shadow); }
 
-  .empty{ color:var(--ink-soft); font-size:0.88rem; padding:10px 2px; }
-  .hint{ color:var(--ink-soft); font-size:0.8rem; }
-  .flex-between{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-  .setup-card{ border-color:var(--out); }
-  .setup-card code{ background:var(--surface-2); padding:1px 6px; border-radius:4px; }
+    .empty{ color:var(--ink-soft); font-size:0.88rem; padding:10px 2px; }
+    .hint{ color:var(--ink-soft); font-size:0.8rem; }
+    .flex-between{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .setup-card{ border-color:var(--out); }
+    .setup-card code{ background:var(--surface-2); padding:1px 6px; border-radius:4px; }
 
-  .modal-overlay{ display:none; position:fixed; inset:0; background:rgba(20,26,33,0.55); align-items:center; justify-content:center; padding:20px; z-index:100; }
-  .modal-card{ width:100%; max-width:340px; }
-  .modal-card h2{ font-size:1.1rem; margin-bottom:4px; }
-</style>
-</head>
-<body>
-<div class="app">
-  <div class="topbar">
-    <div class="brand">
-      <h1>Gate&nbsp;Log</h1>
-      <span class="tag">check-in / check-out register</span>
-    </div>
-    <nav class="tabs" role="tablist" aria-label="Sections">
+    .modal-overlay{ display:none; position:fixed; inset:0; background:rgba(20,26,33,0.55); align-items:center; justify-content:center; padding:20px; z-index:100; }
+    .modal-card{ width:100%; max-width:340px; }
+    .modal-card h2{ font-size:1.1rem; margin-bottom:4px; }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="topbar">
+        <div class="brand">
+          <h1>Gate&nbsp;Log</h1>
+        <span class="tag">check-in / check-out register</span>
+        </div>
+      <nav class="tabs" role="tablist" aria-label="Sections">
       <button class="tab" role="tab" id="tab-scan" aria-selected="true" data-view="scan">Scan</button>
       <button class="tab" role="tab" id="tab-roster" aria-selected="false" data-view="roster">Roster</button>
       <button class="tab" role="tab" id="tab-reports" aria-selected="false" data-view="reports">Reports</button>
-    </nav>
-  </div>
-
-  <div id="setup-warning" class="card setup-card" style="display:none;">
+      </nav>
+      </div>
+    
+    <div id="setup-warning" class="card setup-card" style="display:none;">
     <strong style="color:var(--out);">Not connected to your spreadsheet yet.</strong>
     <p class="hint" style="margin:8px 0 0;">Open this file in a text editor, find the line near the top of the
     <code>&lt;script&gt;</code> that says <code>const API_URL = "PASTE_YOUR_WEB_APP_URL_HERE";</code>, and replace it
     with the Web app URL from your Apps Script deployment (and set <code>API_KEY</code> to match what you put in
     Code.gs). See the setup guide for the full steps.</p>
-  </div>
-  <div id="conn-error" class="card setup-card" style="display:none;">
+    </div>
+    <div id="conn-error" class="card setup-card" style="display:none;">
     <strong style="color:var(--out);">Can't reach the spreadsheet right now.</strong>
     <p class="hint" style="margin:8px 0 0;" id="conn-error-detail">Check your internet connection, or confirm the Apps Script deployment is still live.</p>
-  </div>
-
-  <div id="password-modal" class="modal-overlay">
+    </div>
+    
+    <div id="password-modal" class="modal-overlay">
     <div class="card modal-card">
-      <h2>Staff access</h2>
-      <div class="sub">Enter the staff password to view this section.</div>
-      <div class="field">
-        <label for="password-input">Password</label>
-        <input type="password" id="password-input" placeholder="Password" autocomplete="off" />
-      </div>
-      <div class="hint" id="password-error" style="display:none; color:var(--out); margin:-6px 0 12px;">Incorrect password — try again.</div>
-      <div class="row" style="justify-content:flex-end;">
-        <button class="btn ghost" id="password-cancel">Cancel</button>
-        <button class="btn" id="password-submit">Unlock</button>
-      </div>
+    <h2>Staff access</h2>
+    <div class="sub">Enter the staff password to view this section.</div>
+    <div class="field">
+    <label for="password-input">Password</label>
+    <input type="password" id="password-input" placeholder="Password" autocomplete="off" />
     </div>
-  </div>
-
-  <!-- SCAN VIEW -->
-  <section class="view active" id="view-scan">
+    <div class="hint" id="password-error" style="display:none; color:var(--out); margin:-6px 0 12px;">Incorrect password — try again.</div>
+    <div class="row" style="justify-content:flex-end;">
+    <button class="btn ghost" id="password-cancel">Cancel</button>
+    <button class="btn" id="password-submit">Unlock</button>
+    </div>
+    </div>
+    </div>
+    
+    <!-- SCAN VIEW -->
+    <section class="view active" id="view-scan">
     <div id="scan-banner" class="banner">
-      <span class="state">Ready</span>
-      <span class="name">Scan a student's QR code</span>
-      <span class="meta">Point the camera at the code on their badge</span>
+    <span class="state">Ready</span>
+    <span class="name">Scan a student's QR code</span>
+    <span class="meta">Point the camera at the code on their badge</span>
     </div>
-
+    
     <div class="card">
-      <div class="flex-between">
-        <div>
-          <h2>Scan station</h2>
-          <div class="sub">Camera scans automatically — no need to tap anything</div>
-        </div>
-        <span id="present-pill" class="present-pill"><span class="dot"></span><span id="present-count">0</span> checked in today</span>
-      </div>
+    <div class="flex-between">
+    <div>
+      <h2>Scan station</h2>
+      <div class="sub">Camera scans automatically — no need to tap anything</div>
+    </div>
+      <span id="present-pill" class="present-pill"><span class="dot"></span><span id="present-count">0</span> checked in today</span>
+    </div>
 
       <div id="scanner-idle" class="scan-start">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7V5a1 1 0 0 1 1-1h2M4 17v2a1 1 0 0 0 1 1h2M20 7V5a1 1 0 0 0-1-1h-2M20 17v2a1 1 0 0 1-1 1h-2M4 12h16" stroke-linecap="round"/></svg>
         <div>Camera is off</div>
-        <button class="btn" id="btn-start-camera">Start camera</button>
-        <div class="hint" id="camera-error" style="display:none; color:var(--out);"></div>
+      <button class="btn" id="btn-start-camera">Start camera</button>
+      <div class="hint" id="camera-error" style="display:none; color:var(--out);"></div>
       </div>
-      <div id="qr-reader" style="display:none;"></div>
-      <div class="row" id="scanner-controls" style="display:none; margin-top:10px; justify-content:center;">
-        <button class="btn ghost small" id="btn-stop-camera">Turn off camera</button>
-      </div>
+    <div id="qr-reader" style="display:none;"></div>
+    <div class="row" id="scanner-controls" style="display:none; margin-top:10px; justify-content:center;">
+      <button class="btn ghost small" id="btn-stop-camera">Turn off camera</button>
+    </div>
 
       <div class="manual">
         <div class="flex-between" style="margin-bottom:8px;">
@@ -209,596 +209,587 @@
         </div>
       </div>
     </div>
-  </section>
+    </section>
 
-  <!-- ROSTER VIEW -->
-  <section class="view" id="view-roster">
-    <div class="card">
-      <h2>Add a student</h2>
-      <div class="sub">Assigns the next available code automatically</div>
-      <div class="row">
+      <!-- ROSTER VIEW -->
+      <section class="view" id="view-roster">
+        <div class="card">
+          <h2>Add a student</h2>
+        <div class="sub">Assigns the next available code automatically — if this name (and Date of Birth, if given) already exists, no new record is created</div>
+        <div class="row">
         <div class="field grow" style="margin-bottom:0;">
-          <label>Full name</label>
-          <input type="text" id="add-name" placeholder="e.g. Amara Okafor" />
+        <label>First name</label>
+        <input type="text" id="add-first" placeholder="e.g. Amara" />
+        </div>
+        <div class="field grow" style="margin-bottom:0;">
+        <label>Last name</label>
+        <input type="text" id="add-last" placeholder="e.g. Okafor" />
         </div>
         <div class="field" style="margin-bottom:0; width:160px;">
-          <label>Group (optional)</label>
-          <input type="text" id="add-group" placeholder="e.g. Grade 3" />
+        <label>Date of birth (optional)</label>
+        <input type="date" id="add-dob" />
         </div>
         <button class="btn" id="btn-add-student" style="align-self:flex-end;">Add student</button>
-      </div>
-    </div>
-
-    <div class="card">
+        </div>
+        </div>
+      
+      <div class="card">
       <h2>Bulk import</h2>
-      <div class="sub">One student per line — "Name" or "Name, Group"</div>
-      <textarea id="bulk-text" placeholder="Amara Okafor, Grade 3&#10;Liam Chen, Grade 3&#10;Sofia Rossi, Grade 4"></textarea>
+      <div class="sub">One student per line — "First Name, Last Name" or "First Name, Last Name, YYYY-MM-DD"</div>
+      <textarea id="bulk-text" placeholder="Amara, Okafor, 2016-04-02&#10;Liam, Chen&#10;Sofia, Rossi, 2015-11-19"></textarea>
       <div class="row" style="margin-top:10px;">
-        <button class="btn secondary" id="btn-bulk-import">Import list</button>
-        <span class="hint" id="bulk-status"></span>
+      <button class="btn secondary" id="btn-bulk-import">Import list</button>
+      <span class="hint" id="bulk-status"></span>
       </div>
-    </div>
-
-    <div class="card">
+      </div>
+      
+      <div class="card">
       <div class="flex-between">
-        <div>
-          <h2>Roster</h2>
-          <div class="sub"><span id="roster-count">0</span> students</div>
-        </div>
-        <div class="row">
-          <input type="search" id="roster-search" placeholder="Search name, code, group…" style="width:220px;" />
-          <button class="btn secondary small" id="btn-print-sheet">Download printable QR sheet</button>
-        </div>
+      <div>
+      <h2>Roster</h2>
+      <div class="sub"><span id="roster-count">0</span> students</div>
+      </div>
+      <div class="row">
+      <input type="search" id="roster-search" placeholder="Search name or code…" style="width:220px;" />
+      <button class="btn secondary small" id="btn-print-sheet">Download printable QR sheet</button>
+      </div>
       </div>
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>Code</th><th>Name</th><th>Group</th><th>Status</th><th></th></tr></thead>
-          <tbody id="roster-body"></tbody>
-        </table>
+      <table>
+        <thead><tr><th>Code</th><th>First Name</th><th>Last Name</th><th>Date of Birth</th><th></th></tr></thead>
+      <tbody id="roster-body"></tbody>
+      </table>
       </div>
       <div id="qr-preview-wrap" class="qr-preview" style="display:none;">
-        <canvas id="qr-preview-canvas" width="200" height="200"></canvas>
-        <div>
-          <div id="qr-preview-name" style="font-weight:600;"></div>
-          <div id="qr-preview-code" class="hint mono"></div>
-          <button class="btn ghost small" id="btn-qr-download" style="margin-top:8px;">Download this badge</button>
-        </div>
+      <canvas id="qr-preview-canvas" width="200" height="200"></canvas>
+      <div>
+      <div id="qr-preview-name" style="font-weight:600;"></div>
+      <div id="qr-preview-code" class="hint mono"></div>
+      <button class="btn ghost small" id="btn-qr-download" style="margin-top:8px;">Download this badge</button>
       </div>
-    </div>
-  </section>
-
-  <!-- REPORTS VIEW -->
-  <section class="view" id="view-reports">
+      </div>
+      </div>
+      </section>
+    
+    <!-- REPORTS VIEW -->
+    <section class="view" id="view-reports">
     <div class="card">
-      <div class="flex-between">
-        <div>
-          <h2>Currently on site</h2>
-          <div class="sub">Refreshes every few seconds</div>
-        </div>
-      </div>
-      <div id="present-list" class="table-wrap"></div>
+    <div class="flex-between">
+    <div>
+    <h2>Currently on site</h2>
+    <div class="sub">Refreshes every few seconds</div>
     </div>
-
+    </div>
+    <div id="present-list" class="table-wrap"></div>
+    </div>
+    
     <div class="card">
-      <div class="flex-between">
-        <div>
-          <h2>Monthly report</h2>
-          <div class="sub">Export what you need to submit for the month</div>
-        </div>
-        <div class="row">
-          <input type="month" id="report-month" />
-          <button class="btn secondary" id="btn-export-csv">Export CSV</button>
-        </div>
-      </div>
-      <div class="stat-row" id="report-stats" style="margin:14px 0;"></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Date</th><th>Student</th><th>Code</th><th>Time in</th><th>Time out</th></tr></thead>
-          <tbody id="report-body"></tbody>
-        </table>
-      </div>
+    <div class="flex-between">
+    <div>
+    <h2>Monthly report</h2>
+    <div class="sub">Export what you need to submit for the month</div>
     </div>
-  </section>
-</div>
+    <div class="row">
+    <input type="month" id="report-month" />
+    <button class="btn secondary" id="btn-export-csv">Export CSV</button>
+    </div>
+    </div>
+    <div class="stat-row" id="report-stats" style="margin:14px 0;"></div>
+    <div class="table-wrap">
+    <table>
+    <thead><tr><th>Date</th><th>Student</th><th>Code</th><th>Time in</th><th>Time out</th></tr></thead>
+    <tbody id="report-body"></tbody>
+    </table>
+    </div>
+    </div>
+    </section>
+    </div>
+  
+  <div class="toast-wrap" id="toast-wrap"></div>
+  
+  <script>
+    (function(){
+      "use strict";
 
-<div class="toast-wrap" id="toast-wrap"></div>
+      // ====== CONFIGURE THESE LINES (see the setup guide) ======
+      const API_URL = "https://script.google.com/macros/s/AKfycbyboBKFiPkCsMOJZUKo9LATwXh_WGMViDDhqf-vX9g2-vVeQVgKcX3kbQ36dMlqH33A/exec";
+      const API_KEY = "daniel123";
+      // Staff password that gates the Roster and Reports tabs — anyone can use
+      // the Scan tab without it, but has to enter this to see student names or
+      // the report. Change it to whatever you like; it's checked in the
+      // browser, so it's a light "keep casual visitors out" lock, not a real
+      // login — someone who reads this file's source could still find it.
+      const ADMIN_PASSWORD = "daniel123";
+      // ===============================================================
 
-<script>
-(function(){
-  "use strict";
+      const $ = (sel) => document.querySelector(sel);
+      const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-  // ====== CONFIGURE THESE LINES (see the setup guide) ======
-  const API_URL = "https://script.google.com/macros/s/AKfycbyboBKFiPkCsMOJZUKo9LATwXh_WGMViDDhqf-vX9g2-vVeQVgKcX3kbQ36dMlqH33A/exec";
-  const API_KEY = "daniel123";
-  // Staff password that gates the Roster and Reports tabs — anyone can use
-  // the Scan tab without it, but has to enter this to see student names or
-  // the report. Change it to whatever you like; it's checked in the
-  // browser, so it's a light "keep casual visitors out" lock, not a real
-  // login — someone who reads this file's source could still find it.
-  const ADMIN_PASSWORD = "daniel123";
-  // ===============================================================
+      function pad2(n){ return String(n).padStart(2,'0'); }
+      function fmt12(hhmmss){
+        if(!hhmmss) return '';
+        const parts = hhmmss.split(':'); const h=Number(parts[0]), m=parts[1];
+        const ampm = h>=12?'PM':'AM'; const h12=((h+11)%12)+1;
+        return h12+':'+m+' '+ampm;
+      }
+      function monthBounds(monthVal){
+        const [y,m] = monthVal.split('-').map(Number);
+        return { first: y+'-'+pad2(m) };
+      }
+      function csvEscape(s){ s=String(s==null?'':s); return /[",\r\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+      function toast(msg){
+        const wrap = $('#toast-wrap');
+        const el = document.createElement('div');
+        el.className='toast'; el.textContent=msg;
+        wrap.appendChild(el);
+        setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3200);
+      }
+      function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+      function downloadFile(filename, content, mime){
+        const blob = (content instanceof Blob) ? content : new Blob([content], {type: mime||'text/plain'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url), 4000);
+      }
+      function dataURLtoBlob(dataUrl){
+        const [meta, b64] = dataUrl.split(',');
+        const mime = /:(.*?);/.exec(meta)[1];
+        const bin = atob(b64);
+        const arr = new Uint8Array(bin.length);
+        for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+        return new Blob([arr], {type:mime});
+      }
 
-  const $ = (sel) => document.querySelector(sel);
-  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+      const QR_PREFIX = 'GATELOG:';
 
-  function pad2(n){ return String(n).padStart(2,'0'); }
-  function fmt12(hhmmss){
-    if(!hhmmss) return '';
-    const parts = hhmmss.split(':'); const h=Number(parts[0]), m=parts[1];
-    const ampm = h>=12?'PM':'AM'; const h12=((h+11)%12)+1;
-    return h12+':'+m+' '+ampm;
-  }
-  function monthBounds(monthVal){
-    const [y,m] = monthVal.split('-').map(Number);
-    return { first: y+'-'+pad2(m) };
-  }
-  function csvEscape(s){ s=String(s==null?'':s); return /[",\r\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
-  function toast(msg){
-    const wrap = $('#toast-wrap');
-    const el = document.createElement('div');
-    el.className='toast'; el.textContent=msg;
-    wrap.appendChild(el);
-    setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3200);
-  }
-  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function downloadFile(filename, content, mime){
-    const blob = (content instanceof Blob) ? content : new Blob([content], {type: mime||'text/plain'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url), 4000);
-  }
-  function dataURLtoBlob(dataUrl){
-    const [meta, b64] = dataUrl.split(',');
-    const mime = /:(.*?);/.exec(meta)[1];
-    const bin = atob(b64);
-    const arr = new Uint8Array(bin.length);
-    for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
-    return new Blob([arr], {type:mime});
-  }
+      // ---------- API layer ----------
+      const configured = API_URL && API_URL.indexOf('PASTE_YOUR') === -1;
 
-  const QR_PREFIX = 'GATELOG:';
-  const codeNum = (code) => { const m = /^S(\d+)$/.exec(code||''); return m ? parseInt(m[1],10) : null; };
+      async function apiGet(action, params){
+        const usp = new URLSearchParams(Object.assign({action, key: API_KEY}, params||{}));
+        const res = await fetch(API_URL + '?' + usp.toString());
+        const data = await res.json();
+        if(data && data.error) throw new Error(data.error);
+        return data;
+      }
+      async function apiPost(action, params){
+        // Deliberately NOT setting a JSON content-type — a plain-text body
+        // keeps this a "simple request" so the browser skips a CORS
+        // preflight, which Apps Script web apps don't handle.
+        const res = await fetch(API_URL, { method:'POST', body: JSON.stringify(Object.assign({action, key: API_KEY}, params||{})) });
+        const data = await res.json();
+        if(data && data.error) throw new Error(data.error);
+        return data;
+      }
+      function showConnError(msg){
+        $('#conn-error-detail').textContent = msg || 'Check your internet connection, or confirm the Apps Script deployment is still live.';
+        $('#conn-error').style.display='block';
+      }
+      function clearConnError(){ $('#conn-error').style.display='none'; }
 
-  // ---------- API layer ----------
-  const configured = API_URL && API_URL.indexOf('PASTE_YOUR') === -1;
+      // ---------- state ----------
+      let roster = new Map();
+      let html5Qr = null;
+      let reportRows = [];
+      let lastReportEvents = [];
+      let presentList = [];
+      let scanBusy = false; // true while a scan is being confirmed — camera is
+      // paused and further decodes/manual submits are ignored until it clears.
+      // This is what stops a badge held too long in front of the camera from
+      // getting scanned twice (once in, once right back out).
 
-  async function apiGet(action, params){
-    const usp = new URLSearchParams(Object.assign({action, key: API_KEY}, params||{}));
-    const res = await fetch(API_URL + '?' + usp.toString());
-    const data = await res.json();
-    if(data && data.error) throw new Error(data.error);
-    return data;
-  }
-  async function apiPost(action, params){
-    // Deliberately NOT setting a JSON content-type — a plain-text body
-    // keeps this a "simple request" so the browser skips a CORS
-    // preflight, which Apps Script web apps don't handle.
-    const res = await fetch(API_URL, { method:'POST', body: JSON.stringify(Object.assign({action, key: API_KEY}, params||{})) });
-    const data = await res.json();
-    if(data && data.error) throw new Error(data.error);
-    return data;
-  }
-  function showConnError(msg){
-    $('#conn-error-detail').textContent = msg || 'Check your internet connection, or confirm the Apps Script deployment is still live.';
-    $('#conn-error').style.display='block';
-  }
-  function clearConnError(){ $('#conn-error').style.display='none'; }
+      // ---------- staff password (gates Roster + Reports only) ----------
+      const PROTECTED_VIEWS = ['roster','reports'];
+      let adminUnlocked = false;
+      try{ adminUnlocked = sessionStorage.getItem('gatelog_admin_ok') === '1'; }catch(e){}
+      let pendingView = null;
 
-  // ---------- state ----------
-  let roster = new Map();
-  let html5Qr = null;
-  let reportRows = [];
-  let lastReportEvents = [];
-  let presentList = [];
-  let scanBusy = false; // true while a scan is being confirmed — camera is
-  // paused and further decodes/manual submits are ignored until it clears.
-  // This is what stops a badge held too long in front of the camera from
-  // getting scanned twice (once in, once right back out).
+      function openPasswordModal(viewName){
+        pendingView = viewName;
+        $('#password-input').value='';
+        $('#password-error').style.display='none';
+        $('#password-modal').style.display='flex';
+        setTimeout(()=>$('#password-input').focus(), 50);
+      }
+      function closePasswordModal(){
+        $('#password-modal').style.display='none';
+        pendingView = null;
+      }
+      function submitPassword(){
+        const val = $('#password-input').value;
+        if(val && val === ADMIN_PASSWORD){
+          adminUnlocked = true;
+          try{ sessionStorage.setItem('gatelog_admin_ok','1'); }catch(e){}
+          const target = pendingView;
+          closePasswordModal();
+          showView(target);
+          unlockedRefresh();
+        } else {
+          $('#password-error').style.display='block';
+          $('#password-input').value='';
+          $('#password-input').focus();
+        }
+      }
+      $('#password-cancel').addEventListener('click', closePasswordModal);
+      $('#password-submit').addEventListener('click', submitPassword);
+      $('#password-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') submitPassword(); });
+      $('#password-modal').addEventListener('click', (e)=>{ if(e.target.id==='password-modal') closePasswordModal(); });
 
-  // ---------- staff password (gates Roster + Reports only) ----------
-  const PROTECTED_VIEWS = ['roster','reports'];
-  let adminUnlocked = false;
-  try{ adminUnlocked = sessionStorage.getItem('gatelog_admin_ok') === '1'; }catch(e){}
-  let pendingView = null;
+      // Re-render whatever protected content is now visible once unlocked.
+      function unlockedRefresh(){
+        renderRoster();
+        renderPresentList();
+        renderReport(lastReportEvents);
+      }
 
-  function openPasswordModal(viewName){
-    pendingView = viewName;
-    $('#password-input').value='';
-    $('#password-error').style.display='none';
-    $('#password-modal').style.display='flex';
-    setTimeout(()=>$('#password-input').focus(), 50);
-  }
-  function closePasswordModal(){
-    $('#password-modal').style.display='none';
-    pendingView = null;
-  }
-  function submitPassword(){
-    const val = $('#password-input').value;
-    if(val && val === ADMIN_PASSWORD){
-      adminUnlocked = true;
-      try{ sessionStorage.setItem('gatelog_admin_ok','1'); }catch(e){}
-      const target = pendingView;
-      closePasswordModal();
-      showView(target);
-      unlockedRefresh();
-    } else {
-      $('#password-error').style.display='block';
-      $('#password-input').value='';
-      $('#password-input').focus();
-    }
-  }
-  $('#password-cancel').addEventListener('click', closePasswordModal);
-  $('#password-submit').addEventListener('click', submitPassword);
-  $('#password-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') submitPassword(); });
-  $('#password-modal').addEventListener('click', (e)=>{ if(e.target.id==='password-modal') closePasswordModal(); });
+      // ---------- tabs ----------
+      function showView(name){
+        $$('.view').forEach(v=>v.classList.remove('active'));
+        $('#view-'+name).classList.add('active');
+        $$('.tab').forEach(t=>t.setAttribute('aria-selected', String(t.dataset.view===name)));
+        if(name!=='scan'){ stopCamera(); }
+      }
+      function guardedShowView(name){
+        if(PROTECTED_VIEWS.includes(name) && !adminUnlocked){ openPasswordModal(name); return; }
+        showView(name);
+      }
+      $('#tab-scan').addEventListener('click', ()=>guardedShowView('scan'));
+      $('#tab-roster').addEventListener('click', ()=>guardedShowView('roster'));
+      $('#tab-reports').addEventListener('click', ()=>guardedShowView('reports'));
 
-  // Re-render whatever protected content is now visible once unlocked.
-  function unlockedRefresh(){
-    renderRoster();
-    renderPresentList();
-    renderReport(lastReportEvents);
-  }
-
-  // ---------- tabs ----------
-  function showView(name){
-    $$('.view').forEach(v=>v.classList.remove('active'));
-    $('#view-'+name).classList.add('active');
-    $$('.tab').forEach(t=>t.setAttribute('aria-selected', String(t.dataset.view===name)));
-    if(name!=='scan'){ stopCamera(); }
-  }
-  function guardedShowView(name){
-    if(PROTECTED_VIEWS.includes(name) && !adminUnlocked){ openPasswordModal(name); return; }
-    showView(name);
-  }
-  $('#tab-scan').addEventListener('click', ()=>guardedShowView('scan'));
-  $('#tab-roster').addEventListener('click', ()=>guardedShowView('roster'));
-  $('#tab-reports').addEventListener('click', ()=>guardedShowView('reports'));
-
-  // ---------- init ----------
-  function init(){
-    if(!configured){
-      $('#setup-warning').style.display='block';
-      return;
-    }
-    refreshRoster();
-    refreshPresent();
-    setInterval(refreshRoster, 20000);
-    setInterval(refreshPresent, 6000);
-
-    const now = new Date();
-    $('#report-month').value = now.getFullYear()+'-'+pad2(now.getMonth()+1);
-    $('#report-month').addEventListener('change', loadReport);
-    loadReport();
-  }
-
-  // ---------- roster ----------
-  async function refreshRoster(){
-    try{
-      const list = await apiGet('roster');
-      roster = new Map(list.map(s=>[s.code, s]));
-      clearConnError();
-      renderRoster();
-      renderStudentDatalist();
-    }catch(e){ showConnError('Could not load the roster: '+e.message); }
-  }
-
-  function nextCode(){
-    let max = 0;
-    roster.forEach((s,code)=>{ const n = codeNum(code); if(n && n>max) max=n; });
-    return max+1;
-  }
-
-  function renderRoster(){
-    $('#roster-count').textContent = roster.size;
-    if(!adminUnlocked) return; // don't populate the visible names/table until unlocked
-    const q = ($('#roster-search').value||'').trim().toLowerCase();
-    const rows = Array.from(roster.values())
-      .filter(s => !q || s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q) || (s.group||'').toLowerCase().includes(q))
-      .sort((a,b)=> a.name.localeCompare(b.name));
-    const body = $('#roster-body');
-    body.innerHTML = rows.map(s => (
-      '<tr>'+
-        '<td class="mono code-chip">'+s.code+'</td>'+
-        '<td>'+escapeHtml(s.name)+'</td>'+
-        '<td>'+escapeHtml(s.group||'—')+'</td>'+
-        '<td><span class="badge '+(s.active?'active':'inactive')+'">'+(s.active?'Active':'Inactive')+'</span></td>'+
-        '<td class="row" style="gap:6px; flex-wrap:nowrap;">'+
-          '<button class="btn ghost small" data-qr="'+s.code+'">QR</button>'+
-          '<button class="btn ghost small" data-toggle="'+s.code+'">'+(s.active?'Deactivate':'Reactivate')+'</button>'+
-        '</td>'+
-      '</tr>'
-    )).join('');
-    if(!rows.length){ body.innerHTML = '<tr><td colspan="5" class="empty">No students yet — add one above or bulk import.</td></tr>'; }
-    $$('button[data-qr]').forEach(b=>b.addEventListener('click', ()=>showQrPreview(b.dataset.qr)));
-    $$('button[data-toggle]').forEach(b=>b.addEventListener('click', ()=>toggleActive(b.dataset.toggle)));
-  }
-  $('#roster-search').addEventListener('input', renderRoster);
-
-  function renderStudentDatalist(){
-    const list = $('#student-list');
-    list.innerHTML = Array.from(roster.values())
-      .filter(s=>s.active)
-      .map(s => '<option value="'+escapeHtml(s.name)+'"></option><option value="'+s.code+'"></option>')
-      .join('');
-  }
-
-  async function toggleActive(code){
-    try{ await apiPost('toggleActive', {code}); refreshRoster(); }
-    catch(e){ toast('Could not update student.'); }
-  }
-
-  $('#btn-add-student').addEventListener('click', async ()=>{
-    const name = $('#add-name').value.trim();
-    if(!name){ toast('Enter a name first.'); return; }
-    const group = $('#add-group').value.trim();
-    try{
-      const created = await apiPost('addStudent', {name, group});
-      $('#add-name').value=''; $('#add-group').value='';
-      toast(name+' added as '+created.code);
-      refreshRoster();
-    }catch(e){ toast('Could not add student.'); }
-  });
-
-  $('#btn-bulk-import').addEventListener('click', async ()=>{
-    const lines = $('#bulk-text').value.split('\n').map(l=>l.trim()).filter(Boolean);
-    if(!lines.length){ toast('Paste at least one name first.'); return; }
-    const students = lines.map(line=>{
-      const [namePart, groupPart] = line.split(',');
-      return { name: (namePart||'').trim(), group: (groupPart||'').trim() };
-    }).filter(j=>j.name);
-    const status = $('#bulk-status');
-    status.textContent = 'Importing '+students.length+' students…';
-    try{
-      const result = await apiPost('bulkAdd', {students});
-      status.textContent = 'Imported '+result.created+' students.';
-      $('#bulk-text').value='';
-      toast('Bulk import complete.');
-      refreshRoster();
-    }catch(e){ status.textContent = 'Import failed: '+e.message; }
-  });
-
-  function showQrPreview(code){
-    const s = roster.get(code); if(!s) return;
-    $('#qr-preview-wrap').style.display='flex';
-    const canvas = $('#qr-preview-canvas');
-    new QRious({ element: canvas, value: QR_PREFIX+code, size: 200, background:'#ffffff', foreground:'#1E2A38', level:'M' });
-    $('#qr-preview-name').textContent = s.name;
-    $('#qr-preview-code').textContent = s.code;
-    $('#btn-qr-download').onclick = ()=> downloadFile('badge-'+code+'.png', dataURLtoBlob(canvas.toDataURL('image/png')));
-  }
-
-  $('#btn-print-sheet').addEventListener('click', ()=>{
-    const students = Array.from(roster.values()).filter(s=>s.active).sort((a,b)=>a.name.localeCompare(b.name));
-    if(!students.length){ toast('No active students to print.'); return; }
-    toast('Building QR sheet for '+students.length+' students…');
-    const cards = students.map(s=>{
-      const c = document.createElement('canvas');
-      new QRious({ element:c, value: QR_PREFIX+s.code, size:180, background:'#ffffff', foreground:'#1E2A38', level:'M' });
-      return '<div class="badge-card"><img src="'+c.toDataURL('image/png')+'" width="130" height="130" alt="QR code"/>'+
-        '<div class="bname">'+escapeHtml(s.name)+'</div><div class="bcode">'+s.code+(s.group?(' &middot; '+escapeHtml(s.group)):'')+'</div></div>';
-    }).join('');
-    const html = '<!doctype html><html><head><meta charset="utf-8"><title>Gate Log — QR badges</title><style>'+
-      'body{font-family:Arial,sans-serif;margin:24px;} h1{font-size:18px;} '+
-      '.sheet{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;} '+
-      '.badge-card{border:1px solid #ccc;border-radius:8px;padding:10px;text-align:center;break-inside:avoid;} '+
-      '.badge-card img{display:block;margin:0 auto 6px;} .bname{font-weight:bold;font-size:13px;} .bcode{font-size:11px;color:#555;} '+
-      '@media print{ .no-print{display:none;} }'+
-      '</style></head><body>'+
-      '<h1 class="no-print">Gate Log — printable QR badges (' + students.length + ')</h1>'+
-      '<p class="no-print">Open this file and print — one badge per student. Laminate or attach to a lanyard.</p>'+
-      '<div class="sheet">'+cards+'</div></body></html>';
-    downloadFile('gate-log-qr-sheet.html', html, 'text/html');
-    toast('Sheet downloaded — open it and print.');
-  });
-
-  // ---------- scanning ----------
-  function setBanner(kind, state, name, meta){
-    const el = $('#scan-banner');
-    el.className = 'banner'+(kind?(' '+kind):'');
-    el.innerHTML = '<span class="state">'+state+'</span><span class="name">'+escapeHtml(name)+'</span><span class="meta">'+escapeHtml(meta||'')+'</span>';
-  }
-
-  function readyBanner(){
-    setBanner('', 'Ready', "Scan a student's QR code", 'Point the camera at the code on their badge');
-  }
-
-  async function handleCode(rawCode){
-    let code = rawCode;
-    if(code.startsWith(QR_PREFIX)) code = code.slice(QR_PREFIX.length);
-    code = code.trim();
-    if(!code) return;
-    // A scan is already being confirmed (camera is paused) — ignore this
-    // one rather than let a badge held in view fire a second toggle.
-    if(scanBusy) return;
-    scanBusy = true;
-    pauseCameraForScan();
-    setBanner('', 'Reading…', code, 'Confirming — one moment');
-
-    try{
-      const result = await apiPost('scan', {code});
-      if(result.error === 'not_found'){ setBanner('err','Not recognized', code, 'Check the badge or use manual entry'); }
-      else if(result.error === 'inactive'){ setBanner('err','Inactive student', result.name||code, 'This student is marked inactive'); }
-      else if(result.duplicate){
-        // Server saw another entry for this person within the last 2
-        // minutes and skipped writing a new one — most likely the same
-        // scan registering twice by accident, not a real second visit.
-        setBanner(result.type, result.type==='in'?'Already checked in':'Already checked out', result.name, 'Scanned again right after '+fmt12(result.time)+' — skipped as a duplicate');
-      } else {
-        setBanner(result.type, result.type==='in'?'Checked in':'Checked out', result.name, fmt12(result.time)+' · '+result.code);
+      // ---------- init ----------
+      function init(){
+        if(!configured){
+          $('#setup-warning').style.display='block';
+          return;
+        }
+        refreshRoster();
         refreshPresent();
+        setInterval(refreshRoster, 20000);
+        setInterval(refreshPresent, 6000);
+
+        const now = new Date();
+        $('#report-month').value = now.getFullYear()+'-'+pad2(now.getMonth()+1);
+        $('#report-month').addEventListener('change', loadReport);
+        loadReport();
       }
-    }catch(e){
-      setBanner('err','Could not save', code, 'Check your connection and try again');
-    }
 
-    // Brief pause so the same badge can't be re-read the instant scanning
-    // resumes — kept short since the server now also catches a duplicate
-    // scan of the same person within a couple of minutes (see handleCode).
-    setTimeout(()=>{
-      scanBusy = false;
-      resumeCameraAfterScan();
-      readyBanner();
-    }, 700);
-  }
-
-  $('#btn-manual-log').addEventListener('click', ()=>{
-    const v = $('#manual-input').value.trim();
-    if(!v) return;
-    if(scanBusy){ toast('Give the last scan a second to finish.'); return; }
-    handleCode(v);
-    $('#manual-input').value='';
-  });
-  $('#manual-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ $('#btn-manual-log').click(); } });
-
-  async function startCamera(){
-    const errEl = $('#camera-error');
-    errEl.style.display='none';
-    if(typeof Html5Qrcode === 'undefined'){ errEl.textContent='Scanner library failed to load — check your connection and reload.'; errEl.style.display='block'; return; }
-    // Reveal the container *before* start() — html5-qrcode sizes the video
-    // off the container's live clientWidth, which is 0 while display:none.
-    $('#scanner-idle').style.display='none';
-    $('#qr-reader').style.display='block';
-    try{
-      html5Qr = new Html5Qrcode('qr-reader');
-      try{
-        await html5Qr.start(
-          { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 250, height: 250 } },
-          (decodedText)=>handleCode(decodedText),
-          ()=>{}
-        );
-      }catch(e){
-        await html5Qr.start({ }, { fps:10, qrbox:{width:250,height:250} }, (decodedText)=>handleCode(decodedText), ()=>{});
+      // ---------- roster ----------
+      async function refreshRoster(){
+        try{
+          const list = await apiGet('roster');
+          roster = new Map(list.map(s=>[s.code, s]));
+          clearConnError();
+          renderRoster();
+          renderStudentDatalist();
+        }catch(e){ showConnError('Could not load the roster: '+e.message); }
       }
-      $('#scanner-controls').style.display='flex';
-    }catch(e2){
-      $('#qr-reader').style.display='none';
-      $('#scanner-idle').style.display='flex';
-      errEl.textContent = 'Camera unavailable — allow camera access, or use manual entry below.';
-      errEl.style.display='block';
-    }
-  }
-  function stopCamera(){
-    if(html5Qr){
-      html5Qr.stop().then(()=>html5Qr.clear()).catch(()=>{});
-      html5Qr = null;
-    }
-    scanBusy = false;
-    $('#scanner-idle').style.display='flex';
-    $('#qr-reader').style.display='none';
-    $('#scanner-controls').style.display='none';
-  }
-  // Freezes the live video + decoding while a scan result is being shown,
-  // so a badge that's still sitting in front of the camera can't be read
-  // again a fraction of a second later. Falls back gracefully (the
-  // scanBusy flag alone still blocks re-processing) if pause isn't
-  // supported for some reason.
-  function pauseCameraForScan(){
-    if(html5Qr){ try{ html5Qr.pause(true); }catch(e){} }
-  }
-  function resumeCameraAfterScan(){
-    if(html5Qr){ try{ html5Qr.resume(); }catch(e){} }
-  }
-  $('#btn-start-camera').addEventListener('click', startCamera);
-  $('#btn-stop-camera').addEventListener('click', stopCamera);
 
-  // ---------- presence ----------
-  async function refreshPresent(){
-    try{
-      const list = await apiGet('today');
-      presentList = list;
-      $('#present-count').textContent = list.length; // just a number — fine to show without unlocking
-      renderPresentList();
-      clearConnError();
-    }catch(e){ /* keep last-known view rather than clearing it on a blip */ }
-  }
-  function renderPresentList(){
-    if(!adminUnlocked) return; // the named list itself lives on the (locked) Reports tab
-    const list = presentList;
-    const el = $('#present-list');
-    if(!list.length){ el.innerHTML = '<div class="empty">No one checked in yet today.</div>'; }
-    else{
-      el.innerHTML = '<table><thead><tr><th>Student</th><th>Code</th><th>Since</th></tr></thead><tbody>'+
-        list.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>'<tr><td>'+escapeHtml(p.name)+'</td><td class="mono code-chip">'+p.code+'</td><td class="mono">'+fmt12(p.since)+'</td></tr>').join('')+
-        '</tbody></table>';
-    }
-  }
+      function renderRoster(){
+        $('#roster-count').textContent = roster.size;
+        if(!adminUnlocked) return; // don't populate the visible names/table until unlocked
+        const q = ($('#roster-search').value||'').trim().toLowerCase();
+        const rows = Array.from(roster.values())
+        .filter(s => !q || s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q))
+        .sort((a,b)=> a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
+        const body = $('#roster-body');
+        body.innerHTML = rows.map(s => (
+          '<tr>'+
+          '<td class="mono code-chip">'+s.code+'</td>'+
+          '<td>'+escapeHtml(s.firstName)+'</td>'+
+          '<td>'+escapeHtml(s.lastName)+'</td>'+
+          '<td class="mono">'+(s.dob||'—')+'</td>'+
+          '<td class="row" style="gap:6px; flex-wrap:nowrap;">'+
+          '<button class="btn ghost small" data-qr="'+s.code+'">QR</button>'+
+          '</td>'+
+          '</tr>'
+          )).join('');
+        if(!rows.length){ body.innerHTML = '<tr><td colspan="5" class="empty">No students yet — add one above or bulk import.</td></tr>'; }
+        $$('button[data-qr]').forEach(b=>b.addEventListener('click', ()=>showQrPreview(b.dataset.qr)));
+      }
+      $('#roster-search').addEventListener('input', renderRoster);
 
-  // ---------- reports ----------
-  async function loadReport(){
-    const monthVal = $('#report-month').value;
-    if(!monthVal) return;
-    try{
-      const events = await apiGet('report', {month: monthVal});
-      lastReportEvents = events;
-      renderReport(events);
-      clearConnError();
-    }catch(e){ showConnError('Could not load the report: '+e.message); }
-  }
+      function renderStudentDatalist(){
+        const list = $('#student-list');
+        list.innerHTML = Array.from(roster.values())
+        .map(s => '<option value="'+escapeHtml(s.name)+'"></option><option value="'+s.code+'"></option>')
+        .join('');
+      }
 
-  function renderReport(events){
-    // events: one row per scan {date,time,code,name,type}. Pair sequential
-    // in/out events per student per day into sessions. Rows are still
-    // computed (and kept in reportRows) even while locked, so CSV export
-    // is ready to go the moment the tab unlocks — only the visible table
-    // and stats wait on adminUnlocked.
-    const byDay = {};
-    events.forEach(ev=>{ (byDay[ev.date] = byDay[ev.date]||[]).push(ev); });
-
-    const rows = [];
-    Object.keys(byDay).forEach(date=>{
-      const byCode = {};
-      byDay[date].forEach(ev=>{ (byCode[ev.code] = byCode[ev.code]||[]).push(ev); });
-      Object.keys(byCode).forEach(code=>{
-        let open = null;
-        byCode[code].forEach(ev=>{
-          if(ev.type==='in'){
-            if(open) rows.push({date, name:open.name, code, timeIn:open.time, timeOut:''});
-            open = ev;
-          } else {
-            rows.push({date, name:ev.name, code, timeIn: open?open.time:'', timeOut: ev.time});
-            open = null;
-          }
-        });
-        if(open) rows.push({date, name:open.name, code, timeIn:open.time, timeOut:''});
+      $('#btn-add-student').addEventListener('click', async ()=>{
+        const firstName = $('#add-first').value.trim();
+        const lastName = $('#add-last').value.trim();
+        if(!firstName || !lastName){ toast('Enter a first and last name first.'); return; }
+        const dob = $('#add-dob').value.trim();
+        try{
+          const created = await apiPost('addStudent', {firstName, lastName, dob});
+          $('#add-first').value=''; $('#add-last').value=''; $('#add-dob').value='';
+          if(created.duplicate) toast(firstName+' '+lastName+' already exists as '+created.code+' — no new record created.');
+          else toast(firstName+' '+lastName+' added as '+created.code);
+          refreshRoster();
+        }catch(e){ toast('Could not add student.'); }
       });
-    });
-    rows.sort((a,b)=> a.date===b.date ? a.name.localeCompare(b.name) : a.date.localeCompare(b.date));
-    reportRows = rows;
-    if(!adminUnlocked) return; // don't populate the visible names/table until unlocked
 
-    const daysWithData = new Set(rows.map(r=>r.date)).size;
-    const openSessions = rows.filter(r=>!r.timeOut).length;
-    $('#report-stats').innerHTML = [
-      ['Entries', rows.length],
-      ['Days with activity', daysWithData],
-      ['Missing check-out', openSessions],
-    ].map(([lbl,num])=>'<div class="stat"><div class="num mono">'+num+'</div><div class="lbl">'+lbl+'</div></div>').join('');
+      $('#btn-bulk-import').addEventListener('click', async ()=>{
+        const lines = $('#bulk-text').value.split('\n').map(l=>l.trim()).filter(Boolean);
+        if(!lines.length){ toast('Paste at least one student first.'); return; }
+        const students = lines.map(line=>{
+          const [firstPart, lastPart, dobPart] = line.split(',');
+          return { firstName: (firstPart||'').trim(), lastName: (lastPart||'').trim(), dob: (dobPart||'').trim() };
+        }).filter(j=>j.firstName && j.lastName);
+        const status = $('#bulk-status');
+        status.textContent = 'Importing '+students.length+' students…';
+        try{
+          const result = await apiPost('bulkAdd', {students});
+          status.textContent = 'Imported '+result.created+' students.'+(result.duplicates ? ' ('+result.duplicates+' already existed and were skipped.)' : '');
+          $('#bulk-text').value='';
+          toast('Bulk import complete.');
+          refreshRoster();
+        }catch(e){ status.textContent = 'Import failed: '+e.message; }
+      });
 
-    const body = $('#report-body');
-    if(!rows.length){ body.innerHTML = '<tr><td colspan="5" class="empty">No scans recorded for this month yet.</td></tr>'; }
-    else{
-      body.innerHTML = rows.map(r=>(
-        '<tr><td class="mono">'+r.date+'</td><td>'+escapeHtml(r.name)+'</td><td class="mono code-chip">'+r.code+'</td>'+
-        '<td class="mono">'+(r.timeIn?fmt12(r.timeIn):'—')+'</td><td class="mono">'+(r.timeOut?fmt12(r.timeOut):'<span style="color:var(--out);">missing</span>')+'</td></tr>'
-      )).join('');
-    }
-  }
+      function showQrPreview(code){
+        const s = roster.get(code); if(!s) return;
+        $('#qr-preview-wrap').style.display='flex';
+        const canvas = $('#qr-preview-canvas');
+        new QRious({ element: canvas, value: QR_PREFIX+code, size: 200, background:'#ffffff', foreground:'#1E2A38', level:'M' });
+        $('#qr-preview-name').textContent = s.name;
+        $('#qr-preview-code').textContent = s.code;
+        $('#btn-qr-download').onclick = ()=> downloadFile('badge-'+code+'.png', dataURLtoBlob(canvas.toDataURL('image/png')));
+      }
 
-  $('#btn-export-csv').addEventListener('click', ()=>{
-    if(!reportRows.length){ toast('Nothing to export for this month.'); return; }
-    const header = ['Date','Student Name','Code','Time In','Time Out'];
-    const lines = [header.join(',')];
-    reportRows.forEach(r=> lines.push([r.date, r.name, r.code, r.timeIn?fmt12(r.timeIn):'', r.timeOut?fmt12(r.timeOut):''].map(csvEscape).join(',')));
-    const monthVal = $('#report-month').value;
-    downloadFile('gate-log_'+monthVal+'.csv', lines.join('\r\n'), 'text/csv');
-    toast('CSV downloaded.');
-  });
+      $('#btn-print-sheet').addEventListener('click', ()=>{
+        const students = Array.from(roster.values()).sort((a,b)=>a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
+        if(!students.length){ toast('No students to print.'); return; }
+        toast('Building QR sheet for '+students.length+' students…');
+        const cards = students.map(s=>{
+          const c = document.createElement('canvas');
+          new QRious({ element:c, value: QR_PREFIX+s.code, size:180, background:'#ffffff', foreground:'#1E2A38', level:'M' });
+          return '<div class="badge-card"><img src="'+c.toDataURL('image/png')+'" width="130" height="130" alt="QR code"/>'+
+            '<div class="bname">'+escapeHtml(s.name)+'</div><div class="bcode">'+s.code+'</div></div>';
+        }).join('');
+        const html = '<!doctype html><html><head><meta charset="utf-8"><title>Gate Log — QR badges</title><style>'+
+          'body{font-family:Arial,sans-serif;margin:24px;} h1{font-size:18px;} '+
+          '.sheet{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;} '+
+          '.badge-card{border:1px solid #ccc;border-radius:8px;padding:10px;text-align:center;break-inside:avoid;} '+
+          '.badge-card img{display:block;margin:0 auto 6px;} .bname{font-weight:bold;font-size:13px;} .bcode{font-size:11px;color:#555;} '+
+          '@media print{ .no-print{display:none;} }'+
+          '</style></head><body>'+
+          '<h1 class="no-print">Gate Log — printable QR badges (' + students.length + ')</h1>'+
+          '<p class="no-print">Open this file and print — one badge per student. Laminate or attach to a lanyard.</p>'+
+          '<div class="sheet">'+cards+'</div></body></html>';
+        downloadFile('gate-log-qr-sheet.html', html, 'text/html');
+        toast('Sheet downloaded — open it and print.');
+      });
 
-  init();
-})();
-</script>
-</body>
+      // ---------- scanning ----------
+      function setBanner(kind, state, name, meta){
+        const el = $('#scan-banner');
+        el.className = 'banner'+(kind?(' '+kind):'');
+        el.innerHTML = '<span class="state">'+state+'</span><span class="name">'+escapeHtml(name)+'</span><span class="meta">'+escapeHtml(meta||'')+'</span>';
+      }
+
+      function readyBanner(){
+        setBanner('', 'Ready', "Scan a student's QR code", 'Point the camera at the code on their badge');
+      }
+
+      async function handleCode(rawCode){
+        let code = rawCode;
+        if(code.startsWith(QR_PREFIX)) code = code.slice(QR_PREFIX.length);
+        code = code.trim();
+        if(!code) return;
+        // A scan is already being confirmed (camera is paused) — ignore this
+        // one rather than let a badge held in view fire a second toggle.
+        if(scanBusy) return;
+        scanBusy = true;
+        pauseCameraForScan();
+        setBanner('', 'Reading…', code, 'Confirming — one moment');
+
+        try{
+          const result = await apiPost('scan', {code});
+          if(result.error === 'not_found'){ setBanner('err','Not recognized', code, 'Check the badge or use manual entry'); }
+          else if(result.error === 'inactive'){ setBanner('err','Inactive student', result.name||code, 'This student is marked inactive'); }
+          else if(result.duplicate){
+            // Server saw another entry for this person within the last 2
+            // minutes and skipped writing a new one — most likely the same
+            // scan registering twice by accident, not a real second visit.
+            setBanner(result.type, result.type==='in'?'Already checked in':'Already checked out', result.name, 'Scanned again right after '+fmt12(result.time)+' — skipped as a duplicate');
+          } else {
+            setBanner(result.type, result.type==='in'?'Checked in':'Checked out', result.name, fmt12(result.time)+' · '+result.code);
+            refreshPresent();
+          }
+        }catch(e){
+          setBanner('err','Could not save', code, 'Check your connection and try again');
+        }
+
+        // Brief pause so the same badge can't be re-read the instant scanning
+        // resumes — kept short since the server now also catches a duplicate
+        // scan of the same person within a couple of minutes (see handleCode).
+        setTimeout(()=>{
+          scanBusy = false;
+          resumeCameraAfterScan();
+          readyBanner();
+        }, 700);
+      }
+
+      $('#btn-manual-log').addEventListener('click', ()=>{
+        const v = $('#manual-input').value.trim();
+        if(!v) return;
+        if(scanBusy){ toast('Give the last scan a second to finish.'); return; }
+        handleCode(v);
+        $('#manual-input').value='';
+      });
+      $('#manual-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ $('#btn-manual-log').click(); } });
+
+      async function startCamera(){
+        const errEl = $('#camera-error');
+        errEl.style.display='none';
+        if(typeof Html5Qrcode === 'undefined'){ errEl.textContent='Scanner library failed to load — check your connection and reload.'; errEl.style.display='block'; return; }
+        // Reveal the container *before* start() — html5-qrcode sizes the video
+        // off the container's live clientWidth, which is 0 while display:none.
+        $('#scanner-idle').style.display='none';
+        $('#qr-reader').style.display='block';
+        try{
+          html5Qr = new Html5Qrcode('qr-reader');
+          try{
+            await html5Qr.start(
+              { facingMode: 'environment' },
+              { fps: 10, qrbox: { width: 250, height: 250 } },
+              (decodedText)=>handleCode(decodedText),
+              ()=>{}
+              );
+          }catch(e){
+            await html5Qr.start({ }, { fps:10, qrbox:{width:250,height:250} }, (decodedText)=>handleCode(decodedText), ()=>{});
+          }
+          $('#scanner-controls').style.display='flex';
+        }catch(e2){
+          $('#qr-reader').style.display='none';
+          $('#scanner-idle').style.display='flex';
+          errEl.textContent = 'Camera unavailable — allow camera access, or use manual entry below.';
+          errEl.style.display='block';
+        }
+      }
+      function stopCamera(){
+        if(html5Qr){
+          html5Qr.stop().then(()=>html5Qr.clear()).catch(()=>{});
+          html5Qr = null;
+        }
+        scanBusy = false;
+        $('#scanner-idle').style.display='flex';
+        $('#qr-reader').style.display='none';
+        $('#scanner-controls').style.display='none';
+      }
+      // Freezes the live video + decoding while a scan result is being shown,
+      // so a badge that's still sitting in front of the camera can't be read
+      // again a fraction of a second later. Falls back gracefully (the
+      // scanBusy flag alone still blocks re-processing) if pause isn't
+      // supported for some reason.
+      function pauseCameraForScan(){
+        if(html5Qr){ try{ html5Qr.pause(true); }catch(e){} }
+      }
+      function resumeCameraAfterScan(){
+        if(html5Qr){ try{ html5Qr.resume(); }catch(e){} }
+      }
+      $('#btn-start-camera').addEventListener('click', startCamera);
+      $('#btn-stop-camera').addEventListener('click', stopCamera);
+
+      // ---------- presence ----------
+      async function refreshPresent(){
+        try{
+          const list = await apiGet('today');
+          presentList = list;
+          $('#present-count').textContent = list.length; // just a number — fine to show without unlocking
+          renderPresentList();
+          clearConnError();
+        }catch(e){ /* keep last-known view rather than clearing it on a blip */ }
+      }
+      function renderPresentList(){
+        if(!adminUnlocked) return; // the named list itself lives on the (locked) Reports tab
+        const list = presentList;
+        const el = $('#present-list');
+        if(!list.length){ el.innerHTML = '<div class="empty">No one checked in yet today.</div>'; }
+        else{
+          el.innerHTML = '<table><thead><tr><th>Student</th><th>Code</th><th>Since</th></tr></thead><tbody>'+
+            list.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>'<tr><td>'+escapeHtml(p.name)+'</td><td class="mono code-chip">'+p.code+'</td><td class="mono">'+fmt12(p.since)+'</td></tr>').join('')+
+            '</tbody></table>';
+        }
+      }
+
+      // ---------- reports ----------
+      async function loadReport(){
+        const monthVal = $('#report-month').value;
+        if(!monthVal) return;
+        try{
+          const events = await apiGet('report', {month: monthVal});
+          lastReportEvents = events;
+          renderReport(events);
+          clearConnError();
+        }catch(e){ showConnError('Could not load the report: '+e.message); }
+      }
+
+      function renderReport(events){
+        // events: one row per scan {date,time,code,name,type}. Pair sequential
+        // in/out events per student per day into sessions. Rows are still
+        // computed (and kept in reportRows) even while locked, so CSV export
+        // is ready to go the moment the tab unlocks — only the visible table
+        // and stats wait on adminUnlocked.
+        const byDay = {};
+        events.forEach(ev=>{ (byDay[ev.date] = byDay[ev.date]||[]).push(ev); });
+
+        const rows = [];
+        Object.keys(byDay).forEach(date=>{
+          const byCode = {};
+          byDay[date].forEach(ev=>{ (byCode[ev.code] = byCode[ev.code]||[]).push(ev); });
+          Object.keys(byCode).forEach(code=>{
+            let open = null;
+            byCode[code].forEach(ev=>{
+              if(ev.type==='in'){
+                if(open) rows.push({date, name:open.name, code, timeIn:open.time, timeOut:''});
+                open = ev;
+              } else {
+                rows.push({date, name:ev.name, code, timeIn: open?open.time:'', timeOut: ev.time});
+                open = null;
+              }
+            });
+            if(open) rows.push({date, name:open.name, code, timeIn:open.time, timeOut:''});
+          });
+        });
+        rows.sort((a,b)=> a.date===b.date ? a.name.localeCompare(b.name) : a.date.localeCompare(b.date));
+        reportRows = rows;
+        if(!adminUnlocked) return; // don't populate the visible names/table until unlocked
+
+        const daysWithData = new Set(rows.map(r=>r.date)).size;
+        const openSessions = rows.filter(r=>!r.timeOut).length;
+        $('#report-stats').innerHTML = [
+          ['Entries', rows.length],
+          ['Days with activity', daysWithData],
+          ['Missing check-out', openSessions],
+          ].map(([lbl,num])=>'<div class="stat"><div class="num mono">'+num+'</div><div class="lbl">'+lbl+'</div></div>').join('');
+
+        const body = $('#report-body');
+        if(!rows.length){ body.innerHTML = '<tr><td colspan="5" class="empty">No scans recorded for this month yet.</td></tr>'; }
+        else{
+          body.innerHTML = rows.map(r=>(
+            '<tr><td class="mono">'+r.date+'</td><td>'+escapeHtml(r.name)+'</td><td class="mono code-chip">'+r.code+'</td>'+
+            '<td class="mono">'+(r.timeIn?fmt12(r.timeIn):'—')+'</td><td class="mono">'+(r.timeOut?fmt12(r.timeOut):'<span style="color:var(--out);">missing</span>')+'</td></tr>'
+            )).join('');
+        }
+      }
+
+      $('#btn-export-csv').addEventListener('click', ()=>{
+        if(!reportRows.length){ toast('Nothing to export for this month.'); return; }
+        const header = ['Date','Student Name','Code','Time In','Time Out'];
+        const lines = [header.join(',')];
+        reportRows.forEach(r=> lines.push([r.date, r.name, r.code, r.timeIn?fmt12(r.timeIn):'', r.timeOut?fmt12(r.timeOut):''].map(csvEscape).join(',')));
+        const monthVal = $('#report-month').value;
+        downloadFile('gate-log_'+monthVal+'.csv', lines.join('\r\n'), 'text/csv');
+        toast('CSV downloaded.');
+      });
+
+      init();
+    })();
+  </script>
+  </body>
 </html>
