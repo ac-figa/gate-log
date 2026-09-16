@@ -450,8 +450,11 @@ async function apiGet(action, params){
           try{
                 const res = await fetch(API_URL, { method:'POST', body: JSON.stringify(Object.assign({action, key: API_KEY}, params||{})), signal: ctrl.signal });
                 const data = await res.json();
-                if(data && data.error) throw new Error(data.error);
-                return data;
+                // Deliberately NOT thrown on data.error here (unlike apiGet) -- 'scan'
+                        // returns structured outcomes like not_found/inactive/busy_retry that
+                        // handleCode below needs to read off the result, not catch as an
+                        // exception. A real network failure/timeout still throws normally.
+            return data;
           } finally { clearTimeout(to); }
       }
       function showConnError(msg){
