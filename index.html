@@ -94,6 +94,17 @@
     .present-pill{ display:inline-flex; align-items:center; gap:7px; padding:5px 12px; border-radius:999px; background:var(--in-soft); color:var(--in); font-weight:600; font-size:0.82rem; }
     .present-pill .dot{ width:7px; height:7px; border-radius:50%; background:var(--in); }
     .manual{ border-top:1px dashed var(--line); margin-top:16px; padding-top:14px; }
+        .scan-feed-wrap{ border-top:1px dashed var(--line); margin-top:16px; padding-top:14px; }
+        .scan-feed{ display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; }
+        .feed-row{ display:flex; align-items:baseline; gap:10px; padding:8px 10px; border-radius:7px; background:var(--surface-2); font-size:0.88rem; }
+        .feed-row .feed-name{ font-weight:600; flex:0 0 auto; min-width:110px; }
+        .feed-row .feed-state{ font-weight:700; text-transform:uppercase; font-size:0.72rem; letter-spacing:.04em; flex:0 0 auto; }
+        .feed-row .feed-meta{ color:var(--ink-soft); flex:1 1 auto; text-align:right; }
+        .feed-row.pending{ opacity:0.65; }
+        .feed-row.pending .feed-state{ color:var(--ink-soft); }
+        .feed-row.ok .feed-state{ color:var(--in); }
+        .feed-row.dup .feed-state{ color:var(--ink-soft); }
+        .feed-row.err .feed-state{ color:var(--out); }
 
     table{ width:100%; border-collapse:collapse; font-size:0.88rem; }
     th, td{ text-align:left; padding:9px 8px; border-bottom:1px solid var(--line); }
@@ -209,7 +220,17 @@
           <button class="btn secondary" id="btn-manual-log">Log</button>
         </div>
       </div>
-    </div>
+      <div class="scan-feed-wrap">
+            <div class="flex-between" style="margin-bottom:8px;">
+                    <label style="margin:0;">Recent scans</label>
+                    <span class="hint">Updates as each one confirms — keep scanning, don't wait</span>
+            </div>
+            <div id="scan-feed" class="scan-feed">
+                    <div class="feed-empty">Scans will appear here as they're confirmed.</div>
+            </div>
+      </div>
+      
+      </div>
     </section>
 
       <!-- ROSTER VIEW -->
@@ -445,12 +466,20 @@ async function apiGet(action, params){
       let reportRows = [];
       let lastReportEvents = [];
       let presentList = [];
-let scanBusy = false; // true while a scan is being confirmed — further
-        // decodes/manual submits (camera, scanner, or typed) are ignored until it
-        // clears. For the camera this also pauses the video, stopping a badge
-        // held too long in view from getting scanned twice (once in, once right
-        // back out); for a hardware scanner it just guards against two triggers
-        // landing back-to-back before the first has saved.
+      let rosterFailCount = 0; // consecutive roster-poll failures -- see refreshRoster()
+// ---------- scan feed ----------
+      // Every scan fires immediately now -- there is no more "wait for the
+      // last one to finish" gate, which is what used to make a fast line of
+      // kids back up behind one slow Apps Script response. Results land in
+      // the feed below as each one confirms, in whatever order they finish.
+      const MAX_FEED = 8;
+      let scanFeed = []; // newest first: {id, name, cls, state, meta}
+      let feedSeq = 0;
+      // Guards only against the SAME decoded text firing twice within a beat
+      // -- a camera can decode one held-up badge several times a second.
+      // Purely local and instant, not a network wait.
+      let lastCode = '', lastCodeAt = 0;
+      const REPEAT_GUARD_MS = 1500;
       // ---------- staff password (gates Roster + Reports only) ----------
       const PROTECTED_VIEWS = ['roster','reports'];
       let adminUnlocked = false;
@@ -532,15 +561,23 @@ function init(){
       
       // ---------- roster ----------
       async function refreshRoster(){
-        try{
-          const list = await apiGet('roster');
-          roster = new Map(list.map(s=>[s.code, s]));
-          clearConnError();
-          renderRoster();
-          renderStudentDatalist();
-        }catch(e){ showConnError('Could not load the roster: '+e.message); }
+              try{
+                        const list = await apiGet('roster');
+                        roster = new Map(list.map(s=>[s.code, s]));
+                        rosterFailCount = 0;
+                        clearConnError();
+                        renderRoster();
+                        renderStudentDatalist();
+              }catch(e){
+                        // Apps Script occasionally times out a routine background poll even
+                        // though nothing is actually wrong -- only warn after a few misses
+                        // IN A ROW (not just one), so a single slow response every so often
+                        // doesn't nag with a false alarm.
+                        rosterFailCount++;
+                        if(rosterFailCount >= 3) showConnError('Could not load the roster: '+e.message);
+              }
       }
-
+      
       function renderRoster(){
         $('#roster-count').textContent = roster.size;
         if(!adminUnlocked) return; // don't populate the visible names/table until unlocked
@@ -649,7 +686,33 @@ function readyBanner(){
       setBanner('', 'Ready', "Scan a student's QR code", 'Point the camera at the code on their badge');
 }
       
-        // Keeps the Manual entry box focused so a USB/Bluetooth barcode scanner
+function renderFeed(){
+    const el = $('#scan-feed');
+    if(!el) return;
+    if(!scanFeed.length){ el.innerHTML = '<div class="feed-empty">Scans will appear here as they\'re confirmed.</div>'; return; }
+    el.innerHTML = scanFeed.map(function(item){
+          return '<div class="feed-row '+item.cls+'">'+
+                  '<span class="feed-name">'+escapeHtml(item.name)+'</span>'+
+                  '<span class="feed-state">'+escapeHtml(item.state)+'</span>'+
+                  '<span class="feed-meta">'+escapeHtml(item.meta||'')+'</span>'+
+                '</div>';
+    }).join('');
+}
+      function feedPush(name, cls, state, meta){
+          const id = ++feedSeq;
+          scanFeed.unshift({id: id, name: name, cls: cls, state: state, meta: meta});
+          if(scanFeed.length > MAX_FEED) scanFeed.length = MAX_FEED;
+          renderFeed();
+          return id;
+      }
+      function feedUpdate(id, name, cls, state, meta){
+          const row = scanFeed.find(function(r){ return r.id === id; });
+          if(!row){ feedPush(name, cls, state, meta); return; }
+          row.name = name; row.cls = cls; row.state = state; row.meta = meta;
+          renderFeed();
+      }
+      
+      // Keeps the Manual entry box focused so a USB/Bluetooth barcode scanner
         // — which just "types" into whatever field has focus, then sends Enter —
         // works the instant it's plugged in or paired, without anyone clicking
         // into the box first. Called on load, after every scan, and whenever the
@@ -660,57 +723,53 @@ function readyBanner(){
         }
       
         async function handleCode(rawCode, viaCamera){
-              let code = rawCode;
-              if(code.startsWith(QR_PREFIX)) code = code.slice(QR_PREFIX.length);
-              code = code.trim();
-              if(!code) return;
-              // A scan is already being confirmed — ignore this one rather than let
-              // a badge held in view (camera) or a stray extra scan fire a second
-              // toggle before the first has finished.
-              if(scanBusy) return;
-              scanBusy = true;
-              if(viaCamera) pauseCameraForScan();
-              setBanner('', 'Reading…', code, 'Confirming — one moment');
-          
-              try{
-                      const result = await apiPost('scan', {code});
-                      if(result.error === 'not_found'){ setBanner('err','Not recognized', code, 'Check the badge or use manual entry'); soundError(); }
-                      else if(result.error === 'inactive'){ setBanner('err','Inactive student', result.name||code, 'This student is marked inactive'); soundError(); }
-else if(result.error === 'busy_retry'){ setBanner('err','Busy — try again', code, 'Another scan was still saving — wait a second and rescan'); soundError(); }
-else if(result.duplicate){
-                                // Server saw another entry for this person within the last 2
-                                // minutes and skipped writing a new one — most likely the same
-                                // scan registering twice by accident, not a real second visit.
-                                setBanner(result.type, result.type==='in'?'Already checked in':'Already checked out', result.name, 'Scanned again right after '+fmt12(result.time)+' — skipped as a duplicate');
-                                soundNeutral();
-                      } else {
-                                setBanner(result.type, result.type==='in'?'Checked in':'Checked out', result.name, fmt12(result.time)+' · '+result.code);
-                                if(result.type==='in') soundCheckedIn(); else soundCheckedOut();
-                                refreshPresent();
-                      }
-              }catch(e){
-                  const timedOut = e && e.name === 'AbortError';
-                  setBanner('err', timedOut ? 'Taking too long' : 'Connection hiccup', code, 'It may have still gone through — check Reports if unsure, or just scan again (duplicates are caught automatically)');
-                  soundError();
-              }
-          
-              // Brief pause before accepting the next scan. The camera gets a longer
-              // pause — a badge still sitting in view could otherwise be re-read the
-              // instant scanning resumes. A wired/Bluetooth scanner sends one
-              // complete read per trigger pull, so it only needs enough time to show
-              // the result and play the beep before the next badge.
-              setTimeout(()=>{
-                      scanBusy = false;
-                      if(viaCamera) resumeCameraAfterScan();
-                      readyBanner();
-                      focusManualInput();
-              }, viaCamera ? 700 : 250);
+                  let code = rawCode;
+                  if(code.startsWith(QR_PREFIX)) code = code.slice(QR_PREFIX.length);
+                  code = code.trim();
+                  if(!code) return;
+                  // Guards only against the SAME code firing twice within a beat -- a
+                  // camera can decode one held-up badge several times a second. This
+                  // is purely local and instant, NOT a wait for the server: every scan
+                  // fires immediately below even while an earlier one is still being
+                  // confirmed, so a fast line of kids never backs up behind one slow
+                  // response.
+                  const now = performance.now();
+                  if(code === lastCode && (now - lastCodeAt) < REPEAT_GUARD_MS) return;
+                  lastCode = code; lastCodeAt = now;
+
+                  if(viaCamera) pauseCameraForScan();
+                  const known = roster.get(code);
+                  const feedId = feedPush(known ? known.name : code, 'pending', 'Recording…', '');
+                  readyBanner();
+                  focusManualInput();
+                  if(viaCamera) setTimeout(resumeCameraAfterScan, 700);
+
+                  try{
+                              const result = await apiPost('scan', {code});
+                              if(result.error === 'not_found'){ feedUpdate(feedId, code, 'err', 'Not recognized', 'Check the badge or use manual entry'); soundError(); }
+                              else if(result.error === 'inactive'){ feedUpdate(feedId, result.name||code, 'err', 'Inactive student', 'This student is marked inactive'); soundError(); }
+                              else if(result.error === 'busy_retry'){ feedUpdate(feedId, known ? known.name : code, 'err', 'Try again', 'Spreadsheet was busy — scan once more'); soundError(); }
+                              else if(result.duplicate){
+                                            // Server saw another entry for this person within the last 2
+                                            // minutes and skipped writing a new one — most likely the same
+                                            // scan registering twice by accident, not a real second visit.
+                                            feedUpdate(feedId, result.name, 'dup', 'Already recorded', 'Scanned again right after '+fmt12(result.time)+' — skipped as a duplicate');
+                                            soundNeutral();
+                              } else {
+                                            feedUpdate(feedId, result.name, 'ok', 'Student recorded', (result.type==='in'?'Checked in':'Checked out')+' · '+fmt12(result.time));
+                                            if(result.type==='in') soundCheckedIn(); else soundCheckedOut();
+                                            refreshPresent();
+                              }
+                  }catch(e){
+                              const timedOut = e && e.name === 'AbortError';
+                              feedUpdate(feedId, known ? known.name : code, 'err', timedOut ? 'Taking too long' : 'Connection hiccup', timedOut ? 'It may have still gone through — check Reports if unsure' : 'Check your connection and try again');
+                              soundError();
+                  }
         }
       
         $('#btn-manual-log').addEventListener('click', ()=>{
               const v = $('#manual-input').value.trim();
               if(!v) return;
-              if(scanBusy){ toast('Give the last scan a second to finish.'); return; }
               handleCode(v);
               $('#manual-input').value='';
         });
@@ -773,7 +832,6 @@ else if(result.duplicate){
           html5Qr.stop().then(()=>html5Qr.clear()).catch(()=>{});
           html5Qr = null;
         }
-        scanBusy = false;
         $('#scanner-idle').style.display='flex';
         $('#qr-reader').style.display='none';
         $('#scanner-controls').style.display='none';
