@@ -201,7 +201,7 @@
       <div class="manual">
         <div class="flex-between" style="margin-bottom:8px;">
           <label style="margin:0;">Manual entry</label>
-          <span class="hint">Use if a code won't scan</span>
+          <span class="hint">Type it in, or scan with a connected barcode/QR scanner</span>
         </div>
         <div class="row">
           <input type="text" list="student-list" id="manual-input" class="grow" placeholder="Type a name or code…" />
@@ -365,6 +365,41 @@
         return new Blob([arr], {type:mime});
       }
 
+  // ---------- audio feedback ----------
+        // A short tone on every scan result, so whoever's at the gate doesn't
+        // have to watch the screen to know a scan landed — useful in general,
+        // essential once a USB/Bluetooth barcode scanner is doing the scanning
+        // and nobody's looking at a camera preview. Built with the Web Audio
+        // API rather than an audio file, so there's nothing extra to host.
+        let audioCtx = null;
+        function beep(freqs, duration, type){
+              try{
+                      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                      // iOS/Safari suspends new audio contexts until a real user/hardware
+                      // event unlocks them — a scan triggered by a keystroke (scanner or
+                      // manual entry) or a click counts, so this resume() reliably takes
+                      // effect by the first scan rather than staying silent forever.
+                      if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+                      let t = audioCtx.currentTime;
+                      freqs.forEach((f)=>{
+                                const osc = audioCtx.createOscillator();
+                                const gain = audioCtx.createGain();
+                                osc.type = type || 'sine';
+                                osc.frequency.value = f;
+                                gain.gain.setValueAtTime(0.0001, t);
+                                gain.gain.exponentialRampToValueAtTime(0.35, t + 0.008);
+                                gain.gain.exponentialRampToValueAtTime(0.0001, t + duration/1000);
+                                osc.connect(gain); gain.connect(audioCtx.destination);
+                                osc.start(t); osc.stop(t + duration/1000 + 0.02);
+                                t += duration/1000 + 0.02;
+                      });
+              }catch(e){ /* Web Audio unsupported/blocked — the banner still shows the result either way */ }
+        }
+        function soundCheckedIn(){ beep([880, 1318], 90, 'sine'); }   // bright rising chime — "welcome in"
+        function soundCheckedOut(){ beep([1318, 880], 90, 'sine'); }  // same chime played falling — still a success sound
+        function soundError(){ beep([220, 175], 150, 'square'); }     // low buzz — not recognized / couldn't save
+        function soundNeutral(){ beep([600], 90, 'sine'); }           // single soft blip — duplicate scan, no-op
+      
       const QR_PREFIX = 'GATELOG:';
 
       // ---------- API layer ----------
@@ -398,11 +433,12 @@
       let reportRows = [];
       let lastReportEvents = [];
       let presentList = [];
-      let scanBusy = false; // true while a scan is being confirmed — camera is
-      // paused and further decodes/manual submits are ignored until it clears.
-      // This is what stops a badge held too long in front of the camera from
-      // getting scanned twice (once in, once right back out).
-
+let scanBusy = false; // true while a scan is being confirmed — further
+        // decodes/manual submits (camera, scanner, or typed) are ignored until it
+        // clears. For the camera this also pauses the video, stopping a badge
+        // held too long in view from getting scanned twice (once in, once right
+        // back out); for a hardware scanner it just guards against two triggers
+        // landing back-to-back before the first has saved.
       // ---------- staff password (gates Roster + Reports only) ----------
       const PROTECTED_VIEWS = ['roster','reports'];
       let adminUnlocked = false;
@@ -448,13 +484,14 @@
       }
 
       // ---------- tabs ----------
-      function showView(name){
-        $$('.view').forEach(v=>v.classList.remove('active'));
-        $('#view-'+name).classList.add('active');
-        $$('.tab').forEach(t=>t.setAttribute('aria-selected', String(t.dataset.view===name)));
-        if(name!=='scan'){ stopCamera(); }
-      }
-      function guardedShowView(name){
+function showView(name){
+      $$('.view').forEach(v=>v.classList.remove('active'));
+      $('#view-'+name).classList.add('active');
+      $$('.tab').forEach(t=>t.setAttribute('aria-selected', String(t.dataset.view===name)));
+      if(name!=='scan'){ stopCamera(); }
+      else{ focusManualInput(); }
+}
+        function guardedShowView(name){
         if(PROTECTED_VIEWS.includes(name) && !adminUnlocked){ openPasswordModal(name); return; }
         showView(name);
       }
@@ -463,22 +500,24 @@
       $('#tab-reports').addEventListener('click', ()=>guardedShowView('reports'));
 
       // ---------- init ----------
-      function init(){
-        if(!configured){
-          $('#setup-warning').style.display='block';
-          return;
-        }
-        refreshRoster();
-        refreshPresent();
-        setInterval(refreshRoster, 20000);
-        setInterval(refreshPresent, 6000);
-
-        const now = new Date();
-        $('#report-month').value = now.getFullYear()+'-'+pad2(now.getMonth()+1);
-        $('#report-month').addEventListener('change', loadReport);
-        loadReport();
+function init(){
+      if(!configured){
+              $('#setup-warning').style.display='block';
+              return;
       }
+      refreshRoster();
+      refreshPresent();
+      setInterval(refreshRoster, 20000);
+      setInterval(refreshPresent, 6000);
 
+      const now = new Date();
+      $('#report-month').value = now.getFullYear()+'-'+pad2(now.getMonth()+1);
+      $('#report-month').addEventListener('change', loadReport);
+      loadReport();
+
+      focusManualInput();
+}
+      
       // ---------- roster ----------
       async function refreshRoster(){
         try{
@@ -594,58 +633,99 @@
         el.innerHTML = '<span class="state">'+state+'</span><span class="name">'+escapeHtml(name)+'</span><span class="meta">'+escapeHtml(meta||'')+'</span>';
       }
 
-      function readyBanner(){
-        setBanner('', 'Ready', "Scan a student's QR code", 'Point the camera at the code on their badge');
-      }
-
-      async function handleCode(rawCode){
-        let code = rawCode;
-        if(code.startsWith(QR_PREFIX)) code = code.slice(QR_PREFIX.length);
-        code = code.trim();
-        if(!code) return;
-        // A scan is already being confirmed (camera is paused) — ignore this
-        // one rather than let a badge held in view fire a second toggle.
-        if(scanBusy) return;
-        scanBusy = true;
-        pauseCameraForScan();
-        setBanner('', 'Reading…', code, 'Confirming — one moment');
-
-        try{
-          const result = await apiPost('scan', {code});
-          if(result.error === 'not_found'){ setBanner('err','Not recognized', code, 'Check the badge or use manual entry'); }
-          else if(result.error === 'inactive'){ setBanner('err','Inactive student', result.name||code, 'This student is marked inactive'); }
-          else if(result.duplicate){
-            // Server saw another entry for this person within the last 2
-            // minutes and skipped writing a new one — most likely the same
-            // scan registering twice by accident, not a real second visit.
-            setBanner(result.type, result.type==='in'?'Already checked in':'Already checked out', result.name, 'Scanned again right after '+fmt12(result.time)+' — skipped as a duplicate');
-          } else {
-            setBanner(result.type, result.type==='in'?'Checked in':'Checked out', result.name, fmt12(result.time)+' · '+result.code);
-            refreshPresent();
-          }
-        }catch(e){
-          setBanner('err','Could not save', code, 'Check your connection and try again');
+function readyBanner(){
+      setBanner('', 'Ready', "Scan a student's QR code", 'Point the camera at the code on their badge');
+}
+      
+        // Keeps the Manual entry box focused so a USB/Bluetooth barcode scanner
+        // — which just "types" into whatever field has focus, then sends Enter —
+        // works the instant it's plugged in or paired, without anyone clicking
+        // into the box first. Called on load, after every scan, and whenever the
+        // Scan tab becomes active again.
+        function focusManualInput(){
+              const el = $('#manual-input');
+              if(el && document.activeElement !== el) el.focus({preventScroll:true});
         }
-
-        // Brief pause so the same badge can't be re-read the instant scanning
-        // resumes — kept short since the server now also catches a duplicate
-        // scan of the same person within a couple of minutes (see handleCode).
-        setTimeout(()=>{
-          scanBusy = false;
-          resumeCameraAfterScan();
-          readyBanner();
-        }, 700);
-      }
-
-      $('#btn-manual-log').addEventListener('click', ()=>{
-        const v = $('#manual-input').value.trim();
-        if(!v) return;
-        if(scanBusy){ toast('Give the last scan a second to finish.'); return; }
-        handleCode(v);
-        $('#manual-input').value='';
-      });
-      $('#manual-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ $('#btn-manual-log').click(); } });
-
+      
+        async function handleCode(rawCode, viaCamera){
+              let code = rawCode;
+              if(code.startsWith(QR_PREFIX)) code = code.slice(QR_PREFIX.length);
+              code = code.trim();
+              if(!code) return;
+              // A scan is already being confirmed — ignore this one rather than let
+              // a badge held in view (camera) or a stray extra scan fire a second
+              // toggle before the first has finished.
+              if(scanBusy) return;
+              scanBusy = true;
+              if(viaCamera) pauseCameraForScan();
+              setBanner('', 'Reading…', code, 'Confirming — one moment');
+          
+              try{
+                      const result = await apiPost('scan', {code});
+                      if(result.error === 'not_found'){ setBanner('err','Not recognized', code, 'Check the badge or use manual entry'); soundError(); }
+                      else if(result.error === 'inactive'){ setBanner('err','Inactive student', result.name||code, 'This student is marked inactive'); soundError(); }
+                      else if(result.duplicate){
+                                // Server saw another entry for this person within the last 2
+                                // minutes and skipped writing a new one — most likely the same
+                                // scan registering twice by accident, not a real second visit.
+                                setBanner(result.type, result.type==='in'?'Already checked in':'Already checked out', result.name, 'Scanned again right after '+fmt12(result.time)+' — skipped as a duplicate');
+                                soundNeutral();
+                      } else {
+                                setBanner(result.type, result.type==='in'?'Checked in':'Checked out', result.name, fmt12(result.time)+' · '+result.code);
+                                if(result.type==='in') soundCheckedIn(); else soundCheckedOut();
+                                refreshPresent();
+                      }
+              }catch(e){
+                      setBanner('err','Could not save', code, 'Check your connection and try again');
+                      soundError();
+              }
+          
+              // Brief pause before accepting the next scan. The camera gets a longer
+              // pause — a badge still sitting in view could otherwise be re-read the
+              // instant scanning resumes. A wired/Bluetooth scanner sends one
+              // complete read per trigger pull, so it only needs enough time to show
+              // the result and play the beep before the next badge.
+              setTimeout(()=>{
+                      scanBusy = false;
+                      if(viaCamera) resumeCameraAfterScan();
+                      readyBanner();
+                      focusManualInput();
+              }, viaCamera ? 700 : 250);
+        }
+      
+        $('#btn-manual-log').addEventListener('click', ()=>{
+              const v = $('#manual-input').value.trim();
+              if(!v) return;
+              if(scanBusy){ toast('Give the last scan a second to finish.'); return; }
+              handleCode(v);
+              $('#manual-input').value='';
+        });
+        // Enter submits right away — the default behavior for most barcode/QR
+        // scanners, which send a CR/Enter keystroke right after the code. The
+        // burst detection below is a fallback for a scanner set up WITHOUT that
+        // Enter suffix: real scanner hardware "types" a whole code in a handful
+        // of milliseconds, far faster than anyone typing by hand, so a run of
+        // characters that fast is trusted and submitted automatically — while
+        // genuine manual typing (much slower per keystroke) is left alone to
+        // wait for Enter or the Log button, so this can't misfire while someone
+        // types a name in by hand.
+        let lastKeyTime = 0;
+        let burstTimer = null;
+        const SCANNER_GAP_MS = 30;
+        const BURST_MIN_CHARS = 4;
+        $('#manual-input').addEventListener('keydown', (e)=>{
+              if(e.key === 'Enter'){ clearTimeout(burstTimer); $('#btn-manual-log').click(); return; }
+              const now = performance.now();
+              const gap = now - lastKeyTime;
+              lastKeyTime = now;
+              clearTimeout(burstTimer);
+              if(gap <= SCANNER_GAP_MS){
+                      burstTimer = setTimeout(()=>{
+                                if($('#manual-input').value.trim().length >= BURST_MIN_CHARS) $('#btn-manual-log').click();
+                      }, 60);
+              }
+        });
+      
       async function startCamera(){
         const errEl = $('#camera-error');
         errEl.style.display='none';
@@ -660,11 +740,11 @@
             await html5Qr.start(
               { facingMode: 'environment' },
               { fps: 10, qrbox: { width: 250, height: 250 } },
-              (decodedText)=>handleCode(decodedText),
+              (decodedText)=>handleCode(decodedText, true),
               ()=>{}
               );
           }catch(e){
-            await html5Qr.start({ }, { fps:10, qrbox:{width:250,height:250} }, (decodedText)=>handleCode(decodedText), ()=>{});
+            await html5Qr.start({ }, { fps:10, qrbox:{width:250,height:250} }, (decodedText)=>handleCode(decodedText, true), ()=>{});
           }
           $('#scanner-controls').style.display='flex';
         }catch(e2){
