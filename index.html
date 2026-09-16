@@ -405,21 +405,33 @@
       // ---------- API layer ----------
       const configured = API_URL && API_URL.indexOf('PASTE_YOUR') === -1;
 
-      async function apiGet(action, params){
-        const usp = new URLSearchParams(Object.assign({action, key: API_KEY}, params||{}));
-        const res = await fetch(API_URL + '?' + usp.toString());
-        const data = await res.json();
-        if(data && data.error) throw new Error(data.error);
-        return data;
-      }
+async function apiGet(action, params){
+    const usp = new URLSearchParams(Object.assign({action, key: API_KEY}, params||{}));
+    const ctrl = new AbortController();
+    const to = setTimeout(()=>ctrl.abort(), 10000);
+    try{
+          const res = await fetch(API_URL + '?' + usp.toString(), {signal: ctrl.signal});
+          const data = await res.json();
+          if(data && data.error) throw new Error(data.error);
+          return data;
+    } finally { clearTimeout(to); }
+}
       async function apiPost(action, params){
-        // Deliberately NOT setting a JSON content-type — a plain-text body
-        // keeps this a "simple request" so the browser skips a CORS
-        // preflight, which Apps Script web apps don't handle.
-        const res = await fetch(API_URL, { method:'POST', body: JSON.stringify(Object.assign({action, key: API_KEY}, params||{})) });
-        const data = await res.json();
-        if(data && data.error) throw new Error(data.error);
-        return data;
+          // Deliberately NOT setting a JSON content-type — a plain-text body
+          // keeps this a "simple request" so the browser skips a CORS
+          // preflight, which Apps Script web apps don't handle.
+          // A 10s timeout keeps a stalled connection from leaving the scan
+          // banner stuck on "Confirming..." forever instead of failing fast --
+          // rescanning right after is always safe either way (see the 2-minute
+          // duplicate guard on the backend).
+          const ctrl = new AbortController();
+          const to = setTimeout(()=>ctrl.abort(), 10000);
+          try{
+                const res = await fetch(API_URL, { method:'POST', body: JSON.stringify(Object.assign({action, key: API_KEY}, params||{})), signal: ctrl.signal });
+                const data = await res.json();
+                if(data && data.error) throw new Error(data.error);
+                return data;
+          } finally { clearTimeout(to); }
       }
       function showConnError(msg){
         $('#conn-error-detail').textContent = msg || 'Check your internet connection, or confirm the Apps Script deployment is still live.';
@@ -664,7 +676,8 @@ function readyBanner(){
                       const result = await apiPost('scan', {code});
                       if(result.error === 'not_found'){ setBanner('err','Not recognized', code, 'Check the badge or use manual entry'); soundError(); }
                       else if(result.error === 'inactive'){ setBanner('err','Inactive student', result.name||code, 'This student is marked inactive'); soundError(); }
-                      else if(result.duplicate){
+else if(result.error === 'busy_retry'){ setBanner('err','Busy — try again', code, 'Another scan was still saving — wait a second and rescan'); soundError(); }
+else if(result.duplicate){
                                 // Server saw another entry for this person within the last 2
                                 // minutes and skipped writing a new one — most likely the same
                                 // scan registering twice by accident, not a real second visit.
@@ -676,8 +689,9 @@ function readyBanner(){
                                 refreshPresent();
                       }
               }catch(e){
-                      setBanner('err','Could not save', code, 'Check your connection and try again');
-                      soundError();
+                  const timedOut = e && e.name === 'AbortError';
+                  setBanner('err', timedOut ? 'Taking too long' : 'Connection hiccup', code, 'It may have still gone through — check Reports if unsure, or just scan again (duplicates are caught automatically)');
+                  soundError();
               }
           
               // Brief pause before accepting the next scan. The camera gets a longer
